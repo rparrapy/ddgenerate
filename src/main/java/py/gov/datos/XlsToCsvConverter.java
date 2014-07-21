@@ -49,18 +49,31 @@ public class XlsToCsvConverter implements FileConverter{
     private final  Logger LOG = LoggerFactory.getLogger(XlsToCsvConverter.class);
 
     @Override
-    public List<File> convert(File file, String path) {
+    public List<File> convert(List<File> files, String path) {
+        List<File> result = new ArrayList<File>();
+        for(File file: files){
+            result.addAll(convert(file, path));
+        }
+        return result;
+    }
+
+    private List<File> convert(File file, String path) {
         List<File> result = new ArrayList<File>();
         try {
             XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(file));
+            File csvDir = new File(path + "csv/");
+            if(!csvDir.exists()){
+                csvDir.mkdir();
+            }
             for(int i= 0; i < workbook.getNumberOfSheets(); i++){
                 XSSFSheet sheet = workbook.getSheetAt(i);
-                File outputFile = new File(path + sheet.getSheetName() + ".csv");
+                File outputFile = new File(path + "csv/" + sheet.getSheetName() + ".csv");
                 if(outputFile.createNewFile()){
                     FileOutputStream out = new FileOutputStream(outputFile);
                     StringBuffer content = this.convertSheet(sheet);
                     out.write(content.toString().getBytes());
                     result.add(outputFile);
+                    out.close();
                 }else{
                     LOG.error("Can not create output file");
                 }

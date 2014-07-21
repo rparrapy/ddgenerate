@@ -39,5 +39,5 @@ public interface FileConverter{
      * @param file
      * @param path
      */
-    List<File> convert(File file, String path);
+    List<File> convert(List<File> files, String path);
 }

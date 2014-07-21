@@ -75,18 +75,10 @@ public class DDGenerate {
 
     private void generate(List<File> files, List<FileConverterType> chain) {
         if (!chain.isEmpty()) {
-            for (File file : files) {
-                List<File> tmp = generate(file, chain.get(0));
-
-                generate(tmp, chain.subList(1, chain.size()));
-            }
+            FileConverter converter = f.getFileConverter(chain.get(0));
+            List<File> results = converter.convert(files, out);
+            generate(results, chain.subList(1, chain.size()));
         }
-    }
-
-    private List<File> generate(File file, FileConverterType type) {
-        FileConverter converter = f.getFileConverter(type);
-        List<File> results = converter.convert(file, out);
-        return results;
     }
 
 

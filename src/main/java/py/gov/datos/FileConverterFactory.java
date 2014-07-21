@@ -41,6 +41,9 @@ public class FileConverterFactory {
             case XLS_TO_CSV:
                 converter = new XlsToCsvConverter();
                 break;
+            case CSV_TO_HTML:
+                converter = new CsvToHtmlConverter();
+                break;
         }
         if(converter == null){
             LOG.error("No converter found.");
