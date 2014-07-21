@@ -69,7 +69,7 @@ public class CsvToHtmlConverter implements FileConverter {
             if (file.getName().equals("Clases.csv")) {
                 makeIndex(file, path, templateEngine);
             } else {
-
+                makePage(file, path, templateEngine);
             }
         }
         return null;
@@ -86,7 +86,7 @@ public class CsvToHtmlConverter implements FileConverter {
             String reference = br.readLine().replace("\"", "").replace(";", " ");
             String tableTitle = br.readLine().replace("\"", "").replace(";", "");
             context.getVariables().put("title", tableTitle);
-            context.getVariables().put("title", tableTitle);
+            context.getVariables().put("reference", reference);
 
             boolean st = false;
             List<String> headerOne = new ArrayList<>();
@@ -155,10 +155,61 @@ public class CsvToHtmlConverter implements FileConverter {
     }
 
     private File makePage(File file, String path, TemplateEngine templateEngine) {
+        FileReader fr = null;
+        IContext context = new Context();
+        try {
+            fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+            String line;
+            String headerLine = br.readLine();
+            if(headerLine == null || headerLine.isEmpty()){
+                return null;
+            }
+            String tableTitle = headerLine.replace("\"", "").replace(";", "");
+            context.getVariables().put("title", tableTitle);
+
+            List<String> header = new ArrayList<>();
+            List<List<String>> table = new ArrayList<>();
+            int cont = 0;
+
+            while ((line = br.readLine()) != null) {
+                List<String> elems = new ArrayList<>(Arrays.asList(line.replace("\"", "").split(SPLIT_BY)));
+                if (!elems.isEmpty()) {
+                if(cont == 0){
+                    header.addAll(elems);
+                }else{
+                    while (elems.size() < header.size()) {
+                        elems.add("");
+                    }
+                    table.add(elems);
+                }
+                    cont++;
+                }
+            }
+            context.getVariables().put("header", header);
+            context.getVariables().put("table", table);
+
+            //System.out.println(header);
+            //System.out.println(table);
+
+            String result = templateEngine.process("page", context);
+            //System.out.println(result);
+            writeToFile(file.getName().substring(0, file.getName().indexOf('.')), path, result);
+
+            br.close();
+            fr.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return null;
     }
 
     private File writeToFile(String name, String path, String content) throws IOException {
+        name = name.toLowerCase().replace("á", "a").replace("é", "e").replace("í", "i")
+                .replace("ó", "o").replace("ú", "u").replace(" ", "_");
         File outputFile = new File(path + "html/" + name + ".html");
         if (outputFile.createNewFile()) {
             Writer out = new BufferedWriter(new OutputStreamWriter(
