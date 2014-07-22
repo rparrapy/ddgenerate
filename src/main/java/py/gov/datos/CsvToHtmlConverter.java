@@ -1,6 +1,5 @@
 package py.gov.datos;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
@@ -77,10 +76,9 @@ public class CsvToHtmlConverter implements FileConverter {
 
 
     private File makeIndex(File file, String path, TemplateEngine templateEngine) {
-        FileReader fr = null;
         IContext context = new Context();
         try {
-            fr = new FileReader(file);
+            FileReader fr = new FileReader(file);
             BufferedReader br = new BufferedReader(fr);
             String line;
             String reference = br.readLine().replace("\"", "").replace(";", " ");
@@ -155,10 +153,9 @@ public class CsvToHtmlConverter implements FileConverter {
     }
 
     private File makePage(File file, String path, TemplateEngine templateEngine) {
-        FileReader fr = null;
         IContext context = new Context();
         try {
-            fr = new FileReader(file);
+            FileReader fr = new FileReader(file);
             BufferedReader br = new BufferedReader(fr);
             String line;
             String headerLine = br.readLine();

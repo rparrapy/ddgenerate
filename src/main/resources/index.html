@@ -35,17 +35,25 @@
         <table class="table table-striped table-bordered table-hover">
             <thead>
             <tr>
-                <th th:each="head: ${headerTwo}" th:text="${head}">#</th>
+                <th th:each="head, headStat: ${headerTwo}" th:text="${head}" th:colspan="${headStat.first}? '2'">#</th>
             </tr>
             </thead>
 
             <tbody>
             <tr th:each="row, rowStat: ${tableTwo}">
-                <td th:each="cell, cellStat: ${row}" style="vertical-align:middle;min-width:125px"
+                <td th:each="cell, cellStat: ${row}" style="vertical-align:middle;min-width:125px;border-right:0px;"
                      th:if="${cellStat.first}">
                     <a th:href="${urls[rowStat.index]}"
                        th:if="${cellStat.first}"
                        th:text="${cell}">Link</a>
+
+                </td>
+                <td th:each="cell, cellStat: ${row}" style="vertical-align:middle;border-left:0px;text-align:right;"
+                    th:if="${cellStat.first}">
+                    <a th:href="${urls[rowStat.index]}"
+                       th:if="${cellStat.first}">
+                        <img alt="Ir al diccionario" src="img/def_ico.png">
+                    </a>
 
                 </td>
                 <td th:each="cell, iterStat: ${row}" style="vertical-align:middle;min-width:125px"
