@@ -10,17 +10,14 @@
     <title th:text="${title}"></title>
 </head>
 <body>
-<div class="container" style="width:100%;padding-left:30px;padding-right:30px">
-    <div class="row">
-
-        <h2>
+<h2 style="padding-left:15px;">
             <span style="float:left;">
                 <a href="index.html" title="Ir al inicio"><img alt="Home" src="img/home.png" style="width:24px;"></a>
                 <a href="index.html" style="font-size:12px;" title="Ir al inicio">Inicio</a>
             </span>
-            <center th:text="${title}">Título principal de la página</center>
-        </h2>
-    </div>
+    <center th:text="${title}">Título principal de la página</center>
+</h2>
+<div class="container" style="width:auto;padding-left:30px;padding-right:30px;display:inline-block;s">
     <div class="row">
         <table class="table table-striped table-bordered table-hover">
             <thead>
