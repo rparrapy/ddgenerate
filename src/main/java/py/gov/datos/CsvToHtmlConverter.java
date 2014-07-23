@@ -44,10 +44,22 @@ import java.util.zip.ZipInputStream;
 public class CsvToHtmlConverter implements FileConverter {
     private final Logger LOG = LoggerFactory.getLogger(XlsToCsvConverter.class);
     private final String SPLIT_BY = ";";
+    private static final Map<String, List<String>> LANG_REFERENCES;
+    private List<Integer> removedColumns = new ArrayList<>();
+
+    static {
+        LANG_REFERENCES = new HashMap<>();
+
+        List<String> refEs = Arrays.asList(new String[]{": ESPAÑOL", ": ESPAÑOL,", ": Español"});
+        LANG_REFERENCES.put("es", refEs);
+
+        List<String> refEn = Arrays.asList(new String[]{": INGLES", ": INGLES,", ": Inglés", ": Ingles"});
+        LANG_REFERENCES.put("en", refEn);
+    }
 
 
     @Override
-    public List<File> convert(List<File> files, String path) {
+    public List<File> convert(List<File> files, String path, Map<String, String> params) {
         TemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setTemplateMode("LEGACYHTML5");
         templateResolver.setSuffix(".html");
@@ -56,7 +68,7 @@ public class CsvToHtmlConverter implements FileConverter {
         TemplateEngine templateEngine = new TemplateEngine();
         templateEngine.setTemplateResolver(templateResolver);
 
-        File htmlDir = new File(path + "html/");
+        File htmlDir = new File(path + "def/");
 
         if (!htmlDir.exists()) {
             htmlDir.mkdir();
@@ -67,17 +79,18 @@ public class CsvToHtmlConverter implements FileConverter {
 
         for (File file : files) {
             if (file.getName().equals("Clases.csv")) {
-                result.add(makeIndex(file, path, templateEngine));
+                result.add(makeIndex(file, path, templateEngine, params));
             } else {
-                result.add(makePage(file, path, templateEngine));
+                result.add(makePage(file, path, templateEngine,params));
             }
         }
         return result;
     }
 
 
-    private File makeIndex(File file, String path, TemplateEngine templateEngine) {
+    private File makeIndex(File file, String path, TemplateEngine templateEngine, Map<String, String> params) {
         IContext context = new Context();
+        String lang = params.get("language");
         try {
             FileReader fr = new FileReader(file);
             BufferedReader br = new BufferedReader(fr);
@@ -98,17 +111,18 @@ public class CsvToHtmlConverter implements FileConverter {
                 List<String> elems = new ArrayList<>(Arrays.asList(line.replace("\"", "").split(SPLIT_BY)));
                 if (!elems.isEmpty()) {
                     if (elems.size() >= 2 && elems.get(1).equals("es")) {
+                        elems = localizeTable(lang, elems, true);
                         headerOne.addAll(elems);
-                        //System.out.println(headerOne);
                         continue;
                     }
 
                     if (elems.get(0).equals("Clases")) {
+                        elems = localizeTable(lang, elems, true);
                         headerTwo.addAll(elems);
                         st = true;
-                        //System.out.println(headerTwo);
                         continue;
                     }
+                    elems = localizeTable(lang, elems, false);
                     if (st) {
                         if (elems.size() > 1) {
                             while (elems.size() < headerTwo.size()) {
@@ -130,7 +144,7 @@ public class CsvToHtmlConverter implements FileConverter {
                     }
                 }
             }
-            //System.out.println(tableOne);
+            //System.out.println(headerTwo);
             //System.out.println(tableTwo);
             context.getVariables().put("headerOne", headerOne);
             context.getVariables().put("headerTwo", headerTwo);
@@ -153,8 +167,9 @@ public class CsvToHtmlConverter implements FileConverter {
         return null;
     }
 
-    private File makePage(File file, String path, TemplateEngine templateEngine) {
+    private File makePage(File file, String path, TemplateEngine templateEngine, Map<String, String> params) {
         IContext context = new Context();
+        String lang = params.get("language");
         try {
             FileReader fr = new FileReader(file);
             BufferedReader br = new BufferedReader(fr);
@@ -174,8 +189,10 @@ public class CsvToHtmlConverter implements FileConverter {
                 List<String> elems = new ArrayList<>(Arrays.asList(line.replace("\"", "").split(SPLIT_BY)));
                 if (!elems.isEmpty()) {
                 if(cont == 0){
+                    elems = localizeTable(lang, elems, true);
                     header.addAll(elems);
                 }else{
+                    elems = localizeTable(lang, elems, false);
                     while (elems.size() < header.size()) {
                         elems.add("");
                     }
@@ -208,7 +225,7 @@ public class CsvToHtmlConverter implements FileConverter {
     private File writeToFile(String name, String path, String content) throws IOException {
         name = name.toLowerCase().replace("á", "a").replace("é", "e").replace("í", "i")
                 .replace("ó", "o").replace("ú", "u").replace(" ", "_");
-        File outputFile = new File(path + "html/" + name + ".html");
+        File outputFile = new File(path + "def/" + name + ".html");
         if (outputFile.createNewFile()) {
             Writer out = new BufferedWriter(new OutputStreamWriter(
                     new FileOutputStream(outputFile), "UTF-8"));
@@ -231,7 +248,7 @@ public class CsvToHtmlConverter implements FileConverter {
         try {
             while ((ze = zis.getNextEntry()) != null) {
                 String fileName = ze.getName();
-                File newFile = new File(path + "html/" + fileName);
+                File newFile = new File(path + "def/" + fileName);
                 if (ze.isDirectory()) {
                     newFile.mkdir();
                 } else {
@@ -252,4 +269,38 @@ public class CsvToHtmlConverter implements FileConverter {
             e.printStackTrace();
         }
     }
+
+    private List<String> localizeTable(String lang, List<String> elems, boolean header){
+        if(header){
+            elems = localizeHeader(lang, elems);
+        }
+        for(Integer j: removedColumns){
+            if(j.intValue() < elems.size())
+            elems.remove(j.intValue());
+        }
+        return elems;
+    }
+
+    private List<String> localizeHeader(String lang, List<String> elems){
+        removedColumns = new ArrayList<>();
+        List<String> result = new ArrayList<>();
+        int i = 0;
+        for(String elem: elems){
+            for(String candidateLang: LANG_REFERENCES.keySet()){
+                for(String toRemove: LANG_REFERENCES.get(candidateLang)){
+                    if(elem.contains(toRemove) || elem.equals(candidateLang)){
+                        elem = elem.replace(toRemove, "");
+                        if(!candidateLang.equals(lang)){
+                            removedColumns.add(i);
+                        }
+                    }
+                }}
+            i++;
+            result.add(elem);
+        }
+        removedColumns = new ArrayList<>(new HashSet<>(removedColumns));
+        Collections.sort(removedColumns, Collections.reverseOrder());
+        return result;
+    }
+
 }

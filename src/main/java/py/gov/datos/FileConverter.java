@@ -2,6 +2,7 @@ package py.gov.datos;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 /*
  * @author	Rodrigo Parra
@@ -39,5 +40,5 @@ public interface FileConverter{
      * @param file
      * @param path
      */
-    List<File> convert(List<File> files, String path);
+    List<File> convert(List<File> files, String path, Map<String, String> params);
 }

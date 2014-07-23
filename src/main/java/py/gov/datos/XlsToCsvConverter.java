@@ -43,13 +43,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class XlsToCsvConverter implements FileConverter{
 
     private final  Logger LOG = LoggerFactory.getLogger(XlsToCsvConverter.class);
 
     @Override
-    public List<File> convert(List<File> files, String path) {
+    public List<File> convert(List<File> files, String path, Map<String, String> params) {
         List<File> result = new ArrayList<File>();
         for(File file: files){
             result.addAll(convert(file, path));

@@ -49,6 +49,9 @@ public class DDGenerate {
     @Parameter(names = {"-f", "--format"}, description = "Desired output format")
     private String format = "html";
 
+    @Parameter(names = {"-l", "--lang"}, description = "Desired output language")
+    private String lang = "es";
+
     private FileConverterFactory f = new FileConverterFactory();
 
 
@@ -64,20 +67,23 @@ public class DDGenerate {
 
     public void generate() {
         List<FileConverterType> chain = chainMap.get(format);
+        Map<String, String> params = new HashMap<>();
+        params.put("language", lang);
+
         for (String filename : files) {
             File file = new File(filename);
             List<File> convertee = new ArrayList<File>();
             convertee.add(file);
-            generate(convertee, chain);
+            generate(convertee, chain, params);
         }
         LOG.info("Success!");
     }
 
-    private void generate(List<File> files, List<FileConverterType> chain) {
+    private void generate(List<File> files, List<FileConverterType> chain, Map<String, String> params) {
         if (!chain.isEmpty()) {
             FileConverter converter = f.getFileConverter(chain.get(0));
-            List<File> results = converter.convert(files, out);
-            generate(results, chain.subList(1, chain.size()));
+            List<File> results = converter.convert(files, out, params);
+            generate(results, chain.subList(1, chain.size()), params);
         }
     }
 

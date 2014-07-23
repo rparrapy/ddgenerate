@@ -47,7 +47,7 @@ public class CsvToOwlConverter implements FileConverter {
 
 
     @Override
-    public List<File> convert(List<File> files, String path) {
+    public List<File> convert(List<File> files, String path, Map<String, String> params) {
         TemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setTemplateMode("XML");
         templateResolver.setSuffix(".owl");
