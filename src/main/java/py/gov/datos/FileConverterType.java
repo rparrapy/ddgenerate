@@ -30,5 +30,5 @@ package py.gov.datos;
  */
 
 public enum FileConverterType {
-    XLS_TO_CSV, CSV_TO_HTML, XLS_TO_HTML
+    XLS_TO_CSV, CSV_TO_HTML, XLS_TO_HTML, CSV_TO_OWL
 }

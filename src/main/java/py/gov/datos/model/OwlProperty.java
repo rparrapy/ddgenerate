@@ -1,7 +1,6 @@
-package py.gov.datos;
+package py.gov.datos.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.List;
 
 /*
  * @author	Rodrigo Parra	
@@ -31,25 +30,15 @@ import org.slf4j.LoggerFactory;
  * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
  * MA 02111-1301, USA.
  */
-public class FileConverterFactory {
-
-    private final Logger LOG = LoggerFactory.getLogger(FileConverterFactory.class);
-
-    public FileConverter getFileConverter(FileConverterType type){
-        FileConverter converter = null;
-        switch (type){
-            case XLS_TO_CSV:
-                converter = new XlsToCsvConverter();
-                break;
-            case CSV_TO_HTML:
-                converter = new CsvToHtmlConverter();
-                break;
-            case CSV_TO_OWL:
-                converter = new CsvToOwlConverter();
-        }
-        if(converter == null){
-            LOG.error("No converter found.");
-        }
-        return converter;
-    }
+public class OwlProperty {
+    private String nombre;
+    private String nombreJson;
+    private String labelEspanhol;
+    private String labelIngles;
+    private List<String> labelsAlternativosEspanhol;
+    private List<String> labelsAlternativosIngles;
+    private String tipo;
+    private Integer cardinalidad;
+    private String descripcionEspanhol;
+    private String descripcionIngles;
 }

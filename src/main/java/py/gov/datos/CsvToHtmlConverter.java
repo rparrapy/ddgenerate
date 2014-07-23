@@ -63,15 +63,16 @@ public class CsvToHtmlConverter implements FileConverter {
         }
 
         copyResources(path);
+        List<File> result = new ArrayList<>();
 
         for (File file : files) {
             if (file.getName().equals("Clases.csv")) {
-                makeIndex(file, path, templateEngine);
+                result.add(makeIndex(file, path, templateEngine));
             } else {
-                makePage(file, path, templateEngine);
+                result.add(makePage(file, path, templateEngine));
             }
         }
-        return null;
+        return result;
     }
 
 
