@@ -29,6 +29,8 @@ package py.gov.datos;
  * MA 02111-1301, USA.
  */
 
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -40,6 +42,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -123,7 +126,7 @@ public class XlsToCsvConverter implements FileConverter{
 
                 break;
             case Cell.CELL_TYPE_NUMERIC:
-                data.append(cell.getNumericCellValue() + ";");
+                data.append(new DataFormatter().formatCellValue(cell) + ";");
 
                 break;
             case Cell.CELL_TYPE_STRING:
@@ -134,7 +137,7 @@ public class XlsToCsvConverter implements FileConverter{
                 data.append("" + ";");
                 break;
             default:
-                data.append(cell + ";");
+                data.append(cell.getStringCellValue() + ";");
         }
 
         return data;

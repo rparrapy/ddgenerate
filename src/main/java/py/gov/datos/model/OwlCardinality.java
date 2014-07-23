@@ -1,7 +1,5 @@
 package py.gov.datos.model;
 
-import java.util.List;
-
 /*
  * @author	Rodrigo Parra	
  * @copyright	2014 Governance and Democracy Program USAID-CEAMSO
@@ -30,71 +28,23 @@ import java.util.List;
  * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
  * MA 02111-1301, USA.
  */
-public class OwlProperty {
-    private String nombre;
-    private List<String> labelsEspanhol;
-    private List<String> labelsIngles;
-    private String tipo;
-    private String descripcionEspanhol;
-    private String descripcionIngles;
+public class OwlCardinality {
+    private OwlProperty propiedad;
+    private Integer cardinalidad;
 
-    public OwlProperty(String nombre) {
-        this.nombre = nombre;
+    public OwlProperty getPropiedad() {
+        return propiedad;
     }
 
-    public String getNombre() {
-        return nombre;
+    public void setPropiedad(OwlProperty propiedad) {
+        this.propiedad = propiedad;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public Integer getCardinalidad() {
+        return cardinalidad;
     }
 
-    public List<String> getLabelsEspanhol() {
-        return labelsEspanhol;
-    }
-
-    public void addLabelEspanhol(String labelEspanhol) {
-        this.labelsEspanhol.add(labelEspanhol);
-    }
-
-    public List<String> getLabelsIngles() {
-        return labelsIngles;
-    }
-
-    public void addLabelIngles(String labelIngles) {
-        this.labelsIngles.add(labelIngles);
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
-    public String getDescripcionEspanhol() {
-        return descripcionEspanhol;
-    }
-
-    public void setDescripcionEspanhol(String descripcionEspanhol) {
-        this.descripcionEspanhol = descripcionEspanhol;
-    }
-
-    public String getDescripcionIngles() {
-        return descripcionIngles;
-    }
-
-    public void setDescripcionIngles(String descripcionIngles) {
-        this.descripcionIngles = descripcionIngles;
-    }
-
-    public void setLabelsEspanhol(List<String> labelsEspanhol) {
-        this.labelsEspanhol = labelsEspanhol;
-    }
-
-    public void setLabelsIngles(List<String> labelsIngles) {
-        this.labelsIngles = labelsIngles;
+    public void setCardinalidad(Integer cardinalidad) {
+        this.cardinalidad = cardinalidad;
     }
 }

@@ -63,6 +63,8 @@ public class DDGenerate {
                 {FileConverterType.XLS_TO_CSV, FileConverterType.CSV_TO_HTML}));
         chainMap.put("csv", Arrays.asList(new FileConverterType[]
                 {FileConverterType.XLS_TO_CSV}));
+        chainMap.put("owl", Arrays.asList(new FileConverterType[]
+                {FileConverterType.XLS_TO_CSV, FileConverterType.CSV_TO_OWL}));
     }
 
     public void generate() {

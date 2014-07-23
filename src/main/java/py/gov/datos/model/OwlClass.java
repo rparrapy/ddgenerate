@@ -1,5 +1,6 @@
 package py.gov.datos.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -33,6 +34,63 @@ import java.util.List;
 public class OwlClass {
 
     private String nombre;
-    private List<OwlProperty> propiedades;
+    private List<OwlCardinality> cardinalidades;
+    private String labelEspanhol;
+    private String labelIngles;
+    private String descripcionEspanhol;
+    private String descripcionIngles;
 
+    public OwlClass(String nombre) {
+        this.nombre = nombre;
+        this.cardinalidades = new ArrayList<>();
+    }
+
+
+    public List<OwlCardinality> getCardinalidades() {
+        return cardinalidades;
+    }
+
+    public void addCardinalidad(OwlCardinality cardinalidad) {
+        this.cardinalidades.add(cardinalidad);
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getLabelEspanhol() {
+        return labelEspanhol;
+    }
+
+    public void setLabelEspanhol(String labelEspanhol) {
+        this.labelEspanhol = labelEspanhol;
+    }
+
+    public String getLabelIngles() {
+        return labelIngles;
+    }
+
+    public void setLabelIngles(String labelIngles) {
+        this.labelIngles = labelIngles;
+    }
+
+    public String getDescripcionIngles() {
+        return descripcionIngles;
+    }
+
+    public void setDescripcionIngles(String descripcionIngles) {
+        this.descripcionIngles = descripcionIngles;
+    }
+
+    public String getDescripcionEspanhol() {
+        return descripcionEspanhol;
+    }
+
+    public void setDescripcionEspanhol(String descripcionEspanhol) {
+        this.descripcionEspanhol = descripcionEspanhol;
+    }
 }
