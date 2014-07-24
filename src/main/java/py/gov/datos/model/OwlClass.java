@@ -93,4 +93,24 @@ public class OwlClass {
     public void setDescripcionEspanhol(String descripcionEspanhol) {
         this.descripcionEspanhol = descripcionEspanhol;
     }
+
+    public String getOwlName(){
+        String result = this.nombre.replace("á", "a").replace("é", "e").replace("í", "i")
+                .replace("ó", "o").replace("ú", "u").replace(" ", "_");
+        return toCamelCase(result);
+    }
+
+    private String toCamelCase(String s){
+        String[] parts = s.split("_");
+        String camelCaseString = "";
+        for (String part : parts){
+            camelCaseString = camelCaseString + toProperCase(part);
+        }
+        return camelCaseString;
+    }
+
+    private String toProperCase(String s) {
+        return s.substring(0, 1).toUpperCase() +
+                s.substring(1).toLowerCase();
+    }
 }

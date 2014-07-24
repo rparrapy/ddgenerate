@@ -1,5 +1,6 @@
 package py.gov.datos.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -37,9 +38,11 @@ public class OwlProperty {
     private String tipo;
     private String descripcionEspanhol;
     private String descripcionIngles;
+    private List<OwlClass> classes;
 
     public OwlProperty(String nombre) {
         this.nombre = nombre;
+        this.classes = new ArrayList<>();
     }
 
     public String getNombre() {
@@ -96,5 +99,44 @@ public class OwlProperty {
 
     public void setLabelsIngles(List<String> labelsIngles) {
         this.labelsIngles = labelsIngles;
+    }
+
+    public List<OwlClass> getClasses() {
+        return classes;
+    }
+
+    public void setClasses(List<OwlClass> classes) {
+        this.classes = classes;
+    }
+
+    public void addClass(OwlClass clazz){
+        if(clazz != null)
+            this.classes.add(clazz);
+    }
+
+    public String getOwlName(){
+        String result = this.nombre.replace("á", "a").replace("é", "e").replace("í", "i")
+                .replace("ó", "o").replace("ú", "u").replace(" ", "_");
+        int prefixIndex = result.indexOf("_");
+        if(prefixIndex > 0){
+            String prefix = result.substring(0, prefixIndex);
+            String suffix = result.substring(result.indexOf("_") + 1, result.length());
+            return prefix.toLowerCase() + toCamelCase(suffix);
+        }
+        return this.nombre;
+    }
+
+    private String toCamelCase(String s){
+        String[] parts = s.split("_");
+        String camelCaseString = "";
+        for (String part : parts){
+            camelCaseString = camelCaseString + toProperCase(part);
+        }
+        return camelCaseString;
+    }
+
+    private String toProperCase(String s) {
+        return s.substring(0, 1).toUpperCase() +
+                s.substring(1).toLowerCase();
     }
 }

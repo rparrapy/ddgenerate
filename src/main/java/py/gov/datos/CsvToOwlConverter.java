@@ -1,5 +1,6 @@
 package py.gov.datos;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
@@ -10,6 +11,7 @@ import org.thymeleaf.templateresolver.TemplateResolver;
 import py.gov.datos.model.OwlCardinality;
 import py.gov.datos.model.OwlClass;
 import py.gov.datos.model.OwlProperty;
+import sun.rmi.runtime.Log;
 
 import java.io.*;
 import java.util.*;
@@ -77,9 +79,15 @@ public class CsvToOwlConverter implements FileConverter {
         }
 
         IContext context = new Context();
+
         context.getVariables().put("classes", classes.values());
         context.getVariables().put("properties", properties.values());
         String dncp = templateEngine.process("dncp", context);
+        try {
+            writeToFile("dncp", path, dncp);
+        } catch (IOException e) {
+            LOG.error("Can not create output file");
+        }
         System.out.println(dncp);
 
         return null;
@@ -96,7 +104,7 @@ public class CsvToOwlConverter implements FileConverter {
             boolean flag = false;
             while ((line = br.readLine()) != null) {
                 List<String> elems = new ArrayList<>(Arrays.asList(line.replace("\"", "").split(SPLIT_BY)));
-                if(!elems.isEmpty()){
+                if(!elems.isEmpty() && !line.replace(" ", "").isEmpty()){
                     if(flag){
                         while (elems.size() < columns.size()) {
                             elems.add("");
@@ -142,7 +150,11 @@ public class CsvToOwlConverter implements FileConverter {
                     while (elems.size() < columns.size()) {
                         elems.add("");
                     }
-                    OwlProperty prop = parseOwlProperty(elems);
+                    OwlProperty prop = parseOwlProperty(elems, clazz);
+                    if(!properties.containsKey(prop.getNombre())){
+                        properties.put(prop.getOwlName(), prop);
+                    }
+                    prop.addClass(clazz);
                     String cardElem = elems.get(8);
                     if(cardElem.equals("1") || cardElem.toLowerCase().equals("single")){
                         OwlCardinality card = new OwlCardinality();
@@ -150,7 +162,7 @@ public class CsvToOwlConverter implements FileConverter {
                         card.setPropiedad(prop);
                         //clazz.addCardinalidad(card);
                     }
-
+                    properties.put(prop.getNombre(), prop);
                 }
             }
         } catch (FileNotFoundException e) {
@@ -162,8 +174,12 @@ public class CsvToOwlConverter implements FileConverter {
         return;
     }
 
-    private OwlProperty parseOwlProperty(List<String> elems) {
-        OwlProperty prop = new OwlProperty(elems.get(3)); //Debería ser 1 pero no está completo.
+    private OwlProperty parseOwlProperty(List<String> elems, OwlClass clazz) {
+        String nombre = elems.get(3).trim().replaceAll(" +", " ");
+        OwlProperty prop = new OwlProperty(nombre); //Debería ser 1 pero no está completo.
+        if(prop.getNombre().equals("identifier")){
+            prop.setNombre("identifier" + clazz.getNombre());
+        }
         prop.setDescripcionEspanhol(elems.get(11));
         prop.setDescripcionIngles(elems.get(12));
         prop.setTipo(elems.get(7));
@@ -177,4 +193,20 @@ public class CsvToOwlConverter implements FileConverter {
     }
 
 
+    private File writeToFile(String name, String path, String content) throws IOException {
+        File outputFile = new File(path + "def/" + name + ".owl");
+        if (outputFile.createNewFile()) {
+            Writer out = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(outputFile), "UTF-8"));
+            out.write(content);
+            out.flush();
+            out.close();
+        } else {
+            LOG.error("Can not create output file");
+        }
+        return outputFile;
+
+    }
+
 }
+

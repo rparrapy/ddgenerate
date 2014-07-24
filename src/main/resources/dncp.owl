@@ -6,17 +6,21 @@
         xmlns:llamado="http://www.dncp.gov.py.com/llamado#"
         xmlns:th="http://www.thymeleaf.org">
 
-    <owl:Class th:each="clazz: ${classes}" th:attr="'rdf:ID'=${clazz.nombre}">
-        <rdfs:comment xml:lang="en"
-                >Any pizza that has at least 1 cheese topping.
-        </rdfs:comment>
-        <rdfs:label xml:lang="pt">PizzaComQueijo</rdfs:label>
+    <owl:Class th:each="clazz: ${classes}" th:attr="'rdf:ID'=${clazz.getOwlName()}">
+        <rdfs:comment xml:lang="en" th:text="${clazz.descripcionIngles}">#</rdfs:comment>
+        <rdfs:comment xml:lang="es" th:text="${clazz.descripcionEspanhol}">#</rdfs:comment>
+        <rdfs:label xml:lang="en" th:text="${clazz.labelIngles}">#</rdfs:label>
+        <rdfs:label xml:lang="es" th:text="${clazz.labelEspanhol}">#</rdfs:label>
     </owl:Class>
 
 
-    <owl:DatatypeProperty rdf:ID="yearValue">
-        <rdfs:domain rdf:resource="#VintageYear"/>
-        <rdfs:range rdf:resource="&xsd;positiveInteger"/>
+    <owl:DatatypeProperty th:each="property: ${properties}" th:attr="'rdf:ID'=${property.getOwlName()}">
+        <rdfs:domain th:each="clazz: ${property.classes}" th:attr="'rdf:resource'='#' + ${clazz.getOwlName()}"/>
+        <rdfs:range th:attr="'rdf:resource'=${property.tipo}"/>
+        <rdfs:comment xml:lang="en" th:text="${property.descripcionIngles}">#</rdfs:comment>
+        <rdfs:comment xml:lang="es" th:text="${property.descripcionEspanhol}">#</rdfs:comment>
+        <rdfs:label xml:lang="en" th:each="label: ${property.labelsIngles}" th:text="${label}">#</rdfs:label>
+        <rdfs:label xml:lang="es" th:each="label: ${property.labelsEspanhol}" th:text="${label}">#</rdfs:label>
     </owl:DatatypeProperty>
 
 </rdf:RDF>
