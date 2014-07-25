@@ -3,24 +3,42 @@
         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
         xmlns:owl="http://www.w3.org/2002/07/owl#"
         xmlns:dc="http://purl.org/dc/elements/1.1/"
-        xmlns:llamado="http://www.dncp.gov.py.com/llamado#"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
         xmlns:th="http://www.thymeleaf.org">
 
+    <owl:Ontology rdf:about="http://www.dncp.gov.py.com/llamado">
+        <dc:title>DNCP Calls for Bid Ontology</dc:title>
+        <dc:description>An ontology written for the DNCP Calls for Bid API</dc:description>
+    </owl:Ontology>
+
     <owl:Class th:each="clazz: ${classes}" th:attr="'rdf:ID'=${clazz.getOwlName()}">
-        <rdfs:comment xml:lang="en" th:text="${clazz.descripcionIngles}">#</rdfs:comment>
-        <rdfs:comment xml:lang="es" th:text="${clazz.descripcionEspanhol}">#</rdfs:comment>
-        <rdfs:label xml:lang="en" th:text="${clazz.labelIngles}">#</rdfs:label>
-        <rdfs:label xml:lang="es" th:text="${clazz.labelEspanhol}">#</rdfs:label>
+        <rdfs:comment xml:lang="en" th:text="${clazz.descripcionIngles}" th:remove="${#strings.isEmpty(clazz.descripcionIngles)}? all">#</rdfs:comment>
+        <rdfs:comment xml:lang="es" th:text="${clazz.descripcionEspanhol}" th:remove="${#strings.isEmpty(clazz.descripcionEspanhol)}? all">#</rdfs:comment>
+        <rdfs:label xml:lang="en" th:text="${clazz.labelIngles}" th:remove="${#strings.isEmpty(clazz.labelIngles)}? all">#</rdfs:label>
+        <rdfs:label xml:lang="es" th:text="${clazz.labelEspanhol}" th:remove="${#strings.isEmpty(clazz.labelEspanhol)}? all">#</rdfs:label>
+        <owl:Restriction th:each="cardinality: ${clazz.cardinalidades}">
+            <owl:onProperty th:attr="'rdf:resource'=${cardinality.propiedad.getOwlName()}"/>
+            <owl:cardinality rdf:datatype="&xsd;nonNegativeInteger" th:text="${cardinality.cardinalidad}">2</owl:cardinality>
+        </owl:Restriction>
     </owl:Class>
 
 
-    <owl:DatatypeProperty th:each="property: ${properties}" th:attr="'rdf:ID'=${property.getOwlName()}">
+    <owl:DatatypeProperty th:each="property: ${datatypeProperties}" th:attr="'rdf:ID'=${property.getOwlName()}" th:if="${not property.isObjectProperty()}">
         <rdfs:domain th:each="clazz: ${property.classes}" th:attr="'rdf:resource'='#' + ${clazz.getOwlName()}"/>
         <rdfs:range th:attr="'rdf:resource'=${property.tipo}"/>
-        <rdfs:comment xml:lang="en" th:text="${property.descripcionIngles}">#</rdfs:comment>
-        <rdfs:comment xml:lang="es" th:text="${property.descripcionEspanhol}">#</rdfs:comment>
-        <rdfs:label xml:lang="en" th:each="label: ${property.labelsIngles}" th:text="${label}">#</rdfs:label>
-        <rdfs:label xml:lang="es" th:each="label: ${property.labelsEspanhol}" th:text="${label}">#</rdfs:label>
+        <rdfs:comment xml:lang="en" th:text="${property.descripcionIngles}" th:remove="${#strings.isEmpty(property.descripcionIngles)}? all">#</rdfs:comment>
+        <rdfs:comment xml:lang="es" th:text="${property.descripcionEspanhol}" th:remove="${#strings.isEmpty(property.descripcionEspanhol)}? all">#</rdfs:comment>
+        <rdfs:label xml:lang="en" th:each="label: ${property.labelsIngles}" th:text="${label}" th:remove="${#strings.isEmpty(label)}? all">#</rdfs:label>
+        <rdfs:label xml:lang="es" th:each="label: ${property.labelsEspanhol}" th:text="${label}" th:remove="${#strings.isEmpty(label)}? all">#</rdfs:label>
     </owl:DatatypeProperty>
+
+    <owl:ObjectProperty th:each="property: ${objectProperties}" th:attr="'rdf:ID'=${property.getOwlName()}" th:if="${property.isObjectProperty()}">
+        <rdfs:domain th:each="clazz: ${property.classes}" th:attr="'rdf:resource'='#' + ${clazz.getOwlName()}"/>
+        <rdfs:range th:attr="'rdf:resource'='#' + ${property.tipo}"/>
+        <rdfs:comment xml:lang="en" th:text="${property.descripcionIngles}" th:remove="${#strings.isEmpty(property.descripcionIngles)}? all">#</rdfs:comment>
+        <rdfs:comment xml:lang="es" th:text="${property.descripcionEspanhol}" th:remove="${#strings.isEmpty(property.descripcionEspanhol)}? all">#</rdfs:comment>
+        <rdfs:label xml:lang="en" th:each="label: ${property.labelsIngles}" th:text="${label}" th:remove="${#strings.isEmpty(label)}? all">#</rdfs:label>
+        <rdfs:label xml:lang="es" th:each="label: ${property.labelsEspanhol}" th:text="${label}" th:remove="${#strings.isEmpty(label)}? all">#</rdfs:label>
+    </owl:ObjectProperty>
 
 </rdf:RDF>

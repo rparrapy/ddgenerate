@@ -63,7 +63,7 @@ public class CsvToOwlConverter implements FileConverter {
         TemplateEngine templateEngine = new TemplateEngine();
         templateEngine.setTemplateResolver(templateResolver);
 
-        File owlDir = new File(path + "owl/");
+        File owlDir = new File(path + "def/");
 
         if (!owlDir.exists()) {
             owlDir.mkdir();
@@ -81,16 +81,29 @@ public class CsvToOwlConverter implements FileConverter {
         IContext context = new Context();
 
         context.getVariables().put("classes", classes.values());
-        context.getVariables().put("properties", properties.values());
+
+        List<OwlProperty> objectProperties = new ArrayList<>();
+        List<OwlProperty> datatypeProperties = new ArrayList<>();
+
+        for(OwlProperty p: properties.values()){
+            if(p.isObjectProperty()){
+                objectProperties.add(p);
+            }else{
+                datatypeProperties.add(p);
+            }
+        }
+
+        context.getVariables().put("datatypeProperties", datatypeProperties);
+        context.getVariables().put("objectProperties", objectProperties);
         String dncp = templateEngine.process("dncp", context);
+
         try {
-            writeToFile("dncp", path, dncp);
+            result.add(writeToFile("dncp", path, dncp));
         } catch (IOException e) {
             LOG.error("Can not create output file");
         }
-        System.out.println(dncp);
 
-        return null;
+        return result;
     }
 
     private void processIndex(File file, String s, TemplateEngine templateEngine) {
@@ -109,11 +122,7 @@ public class CsvToOwlConverter implements FileConverter {
                         while (elems.size() < columns.size()) {
                             elems.add("");
                         }
-                        OwlClass clazz = new OwlClass(elems.get(0));
-                        clazz.setLabelEspanhol(elems.get(1));
-                        clazz.setLabelIngles(elems.get(2));
-                        clazz.setDescripcionEspanhol(elems.get(3));
-                        clazz.setDescripcionIngles(elems.get(4));
+                        OwlClass clazz = parseOwlClass(elems);
                         classes.put(clazz.getNombre(), clazz);
                     }
                     if(elems.get(0).equals("Clases")){
@@ -146,12 +155,12 @@ public class CsvToOwlConverter implements FileConverter {
 
             while ((line = br.readLine()) != null) {
                 List<String> elems = new ArrayList<>(Arrays.asList(line.replace("\"", "").split(SPLIT_BY)));
-                if (!elems.isEmpty()) {
+                if (!elems.isEmpty() && elems.get(0).length() > 0) {
                     while (elems.size() < columns.size()) {
                         elems.add("");
                     }
                     OwlProperty prop = parseOwlProperty(elems, clazz);
-                    if(!properties.containsKey(prop.getNombre())){
+                    if(!properties.containsKey(prop.getOwlName())){
                         properties.put(prop.getOwlName(), prop);
                     }
                     prop.addClass(clazz);
@@ -160,9 +169,8 @@ public class CsvToOwlConverter implements FileConverter {
                         OwlCardinality card = new OwlCardinality();
                         card.setCardinalidad(1);
                         card.setPropiedad(prop);
-                        //clazz.addCardinalidad(card);
+                        clazz.addCardinalidad(card);
                     }
-                    properties.put(prop.getNombre(), prop);
                 }
             }
         } catch (FileNotFoundException e) {
@@ -178,18 +186,47 @@ public class CsvToOwlConverter implements FileConverter {
         String nombre = elems.get(3).trim().replaceAll(" +", " ");
         OwlProperty prop = new OwlProperty(nombre); //Debería ser 1 pero no está completo.
         if(prop.getNombre().equals("identifier")){
-            prop.setNombre("identifier" + clazz.getNombre());
+            prop.setNombre("identifier" + clazz.getOwlName());
         }
         prop.setDescripcionEspanhol(elems.get(11));
         prop.setDescripcionIngles(elems.get(12));
-        prop.setTipo(elems.get(7));
+        String tipo = elems.get(7);
+
+        if(tipo.startsWith("&xsd")){
+            prop.setTipo(tipo);
+        }else{
+            prop.setTipo(new OwlClass(tipo).getOwlName());
+        }
+
         List<String> labelsEspanhol = new ArrayList<>(Arrays.asList(elems.get(4).split(",")));
         labelsEspanhol.add(elems.get(2));
+        removeEmpty(labelsEspanhol);
         prop.setLabelsEspanhol(labelsEspanhol);
 
         List<String> labelsIngles = new ArrayList<>(Arrays.asList(elems.get(5).split(",")));
         prop.setLabelsIngles(labelsIngles);
+        removeEmpty(labelsIngles);
         return prop;
+    }
+
+    private void removeEmpty(List<String> elems){
+        Iterator<String> i = elems.iterator();
+        while(i.hasNext()){
+            String l = i.next();
+            if(l.replace(" ", "").isEmpty()){
+                i.remove();
+            }
+        }
+    }
+
+    private OwlClass parseOwlClass(List<String> elems){
+        OwlClass clazz = new OwlClass(elems.get(0));
+        clazz.setLabelEspanhol(elems.get(1));
+        clazz.setLabelIngles(elems.get(2));
+        clazz.setDescripcionEspanhol(elems.get(3));
+        clazz.setDescripcionIngles(elems.get(4));
+
+        return clazz;
     }
 
 

@@ -123,7 +123,7 @@ public class OwlProperty {
             String suffix = result.substring(result.indexOf("_") + 1, result.length());
             return prefix.toLowerCase() + toCamelCase(suffix);
         }
-        return this.nombre;
+        return this.nombre.toLowerCase();
     }
 
     private String toCamelCase(String s){
@@ -138,5 +138,12 @@ public class OwlProperty {
     private String toProperCase(String s) {
         return s.substring(0, 1).toUpperCase() +
                 s.substring(1).toLowerCase();
+    }
+
+    public boolean isObjectProperty(){
+        if(this.tipo != null && !this.tipo.startsWith("&xsd")){
+            return true;
+        }
+        return false;
     }
 }
