@@ -141,9 +141,13 @@ public class OwlProperty {
     }
 
     public boolean isObjectProperty(){
-        if(this.tipo != null && !this.tipo.startsWith("&xsd")){
+        if(this.tipo != null && !this.tipo.startsWith("xsd")){
             return true;
         }
         return false;
+    }
+
+    public String getBasicType(){
+        return this.tipo.split(":")[1];
     }
 }

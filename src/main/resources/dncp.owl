@@ -4,6 +4,7 @@
         xmlns:owl="http://www.w3.org/2002/07/owl#"
         xmlns:dc="http://purl.org/dc/elements/1.1/"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+        xmlns:base="http://www.dncp.gov.py.com/llamado"
         xmlns:th="http://www.thymeleaf.org">
 
     <owl:Ontology rdf:about="http://www.dncp.gov.py.com/llamado">
@@ -18,14 +19,14 @@
         <rdfs:label xml:lang="es" th:text="${clazz.labelEspanhol}" th:remove="${#strings.isEmpty(clazz.labelEspanhol)}? all">#</rdfs:label>
         <owl:Restriction th:each="cardinality: ${clazz.cardinalidades}">
             <owl:onProperty th:attr="'rdf:resource'=${cardinality.propiedad.getOwlName()}"/>
-            <owl:cardinality rdf:datatype="&xsd;nonNegativeInteger" th:text="${cardinality.cardinalidad}">2</owl:cardinality>
+            <owl:cardinality rdf:datatype="&amp;xsd;nonNegativeInteger" th:text="${cardinality.cardinalidad}">2</owl:cardinality>
         </owl:Restriction>
     </owl:Class>
 
 
     <owl:DatatypeProperty th:each="property: ${datatypeProperties}" th:attr="'rdf:ID'=${property.getOwlName()}" th:if="${not property.isObjectProperty()}">
         <rdfs:domain th:each="clazz: ${property.classes}" th:attr="'rdf:resource'='#' + ${clazz.getOwlName()}"/>
-        <rdfs:range th:attr="'rdf:resource'=${property.tipo}"/>
+        <rdfs:range th:attr="'rdf:resource'='&amp;xsd;' + ${property.getBasicType()}"/>
         <rdfs:comment xml:lang="en" th:text="${property.descripcionIngles}" th:remove="${#strings.isEmpty(property.descripcionIngles)}? all">#</rdfs:comment>
         <rdfs:comment xml:lang="es" th:text="${property.descripcionEspanhol}" th:remove="${#strings.isEmpty(property.descripcionEspanhol)}? all">#</rdfs:comment>
         <rdfs:label xml:lang="en" th:each="label: ${property.labelsIngles}" th:text="${label}" th:remove="${#strings.isEmpty(label)}? all">#</rdfs:label>

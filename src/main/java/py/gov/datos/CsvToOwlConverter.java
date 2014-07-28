@@ -56,7 +56,7 @@ public class CsvToOwlConverter implements FileConverter {
     @Override
     public List<File> convert(List<File> files, String path, Map<String, String> params) {
         TemplateResolver templateResolver = new ClassLoaderTemplateResolver();
-        templateResolver.setTemplateMode("XML");
+        templateResolver.setTemplateMode("LEGACYHTML5");
         templateResolver.setSuffix(".owl");
         templateResolver.setCacheable(false);
 
@@ -183,7 +183,7 @@ public class CsvToOwlConverter implements FileConverter {
     }
 
     private OwlProperty parseOwlProperty(List<String> elems, OwlClass clazz) {
-        String nombre = elems.get(3).trim().replaceAll(" +", " ");
+        String nombre = elems.get(2).trim().replaceAll(" +", " ");
         OwlProperty prop = new OwlProperty(nombre); //Debería ser 1 pero no está completo.
         if(prop.getNombre().equals("identifier")){
             prop.setNombre("identifier" + clazz.getOwlName());
@@ -192,7 +192,7 @@ public class CsvToOwlConverter implements FileConverter {
         prop.setDescripcionIngles(elems.get(12));
         String tipo = elems.get(7);
 
-        if(tipo.startsWith("&xsd")){
+        if(tipo.startsWith("xsd")){
             prop.setTipo(tipo);
         }else{
             prop.setTipo(new OwlClass(tipo).getOwlName());
