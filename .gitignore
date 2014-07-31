@@ -14,3 +14,7 @@ target/
 
 #Linux
 .*~
+
+src/main/resources/css/
+src/main/resources/img/
+src/main/resources/js/

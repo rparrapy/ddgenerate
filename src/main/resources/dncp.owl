@@ -4,10 +4,10 @@
         xmlns:owl="http://www.w3.org/2002/07/owl#"
         xmlns:dc="http://purl.org/dc/elements/1.1/"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
-        xmlns:base="http://www.dncp.gov.py.com/llamado"
+        xmlns:base="http://www.contrataciones.gov.py/datos/def/dncp"
         xmlns:th="http://www.thymeleaf.org">
 
-    <owl:Ontology rdf:about="http://www.dncp.gov.py.com/llamado">
+    <owl:Ontology rdf:about="http://www.contrataciones.gov.py/datos/def/dncp/">
         <dc:title>DNCP Calls for Bid Ontology</dc:title>
         <dc:description>An ontology written for the DNCP Calls for Bid API</dc:description>
     </owl:Ontology>
