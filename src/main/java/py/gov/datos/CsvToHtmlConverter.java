@@ -141,8 +141,7 @@ public class CsvToHtmlConverter implements FileConverter {
                     }
                 }
             }
-            //System.out.println(headerTwo);
-            //System.out.println(tableTwo);
+
             context.getVariables().put("headerOne", headerOne);
             context.getVariables().put("headerTwo", headerTwo);
             context.getVariables().put("tableOne", tableOne);
@@ -150,7 +149,6 @@ public class CsvToHtmlConverter implements FileConverter {
             context.getVariables().put("urls", urls);
 
             String result = templateEngine.process("index", context);
-            //System.out.println(result);
             writeToFile("index", path, result);
 
             br.close();

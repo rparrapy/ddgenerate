@@ -70,11 +70,12 @@ public class DDGenerate {
     }
 
     public void generate() {
-        cleanOutputDir();
+        cleanOutputDir("def/", "csv/");
         Map<String, String> params = new HashMap<>();
         params.put("language", lang);
 
         for(String format: formats){
+            cleanOutputDir("csv/");
             List<FileConverterType> chain = chainMap.get(format);
             for (String filename : files) {
                 File file = new File(filename);
@@ -93,15 +94,16 @@ public class DDGenerate {
         }
     }
 
-    private void cleanOutputDir(){
-        String[] dirList = {"def/", "csv/"};
+    private void cleanOutputDir(String... dirList){
+        System.gc();
         for(String dirName: dirList){
             File dir = new File(out + dirName);
             if(dir.exists()){
                 try {
                     FileUtils.deleteDirectory(dir);
                 } catch (IOException e) {
-                    LOG.error("Can not delete existing html directory");
+                    LOG.error("Can not delete existing directory");
+                    e.printStackTrace();
                 }
             }
         }

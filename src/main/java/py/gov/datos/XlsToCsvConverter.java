@@ -76,6 +76,7 @@ public class XlsToCsvConverter implements FileConverter{
                     StringBuffer content = this.convertSheet(sheet);
                     out.write(content.toString().getBytes());
                     result.add(outputFile);
+                    out.flush();
                     out.close();
                 }else{
                     LOG.error("Can not create output file");
