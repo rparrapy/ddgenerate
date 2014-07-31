@@ -31,10 +31,12 @@ package py.gov.datos;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class DDGenerate {
@@ -47,7 +49,7 @@ public class DDGenerate {
     private String out = "";
 
     @Parameter(names = {"-f", "--format"}, description = "Desired output format")
-    private String format = "html";
+    private List<String> formats = new ArrayList<>(Arrays.asList("html"));
 
     @Parameter(names = {"-l", "--lang"}, description = "Desired output language")
     private String lang = "es";
@@ -68,17 +70,19 @@ public class DDGenerate {
     }
 
     public void generate() {
-        List<FileConverterType> chain = chainMap.get(format);
+        cleanOutputDir();
         Map<String, String> params = new HashMap<>();
         params.put("language", lang);
 
-        for (String filename : files) {
-            File file = new File(filename);
-            List<File> convertee = new ArrayList<File>();
-            convertee.add(file);
-            generate(convertee, chain, params);
+        for(String format: formats){
+            List<FileConverterType> chain = chainMap.get(format);
+            for (String filename : files) {
+                File file = new File(filename);
+                List<File> convertee = new ArrayList<File>();
+                convertee.add(file);
+                generate(convertee, chain, params);
+            }
         }
-        LOG.info("Success!");
     }
 
     private void generate(List<File> files, List<FileConverterType> chain, Map<String, String> params) {
@@ -86,6 +90,20 @@ public class DDGenerate {
             FileConverter converter = f.getFileConverter(chain.get(0));
             List<File> results = converter.convert(files, out, params);
             generate(results, chain.subList(1, chain.size()), params);
+        }
+    }
+
+    private void cleanOutputDir(){
+        String[] dirList = {"def/", "csv/"};
+        for(String dirName: dirList){
+            File dir = new File(out + dirName);
+            if(dir.exists()){
+                try {
+                    FileUtils.deleteDirectory(dir);
+                } catch (IOException e) {
+                    LOG.error("Can not delete existing html directory");
+                }
+            }
         }
     }
 

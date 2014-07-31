@@ -1,5 +1,6 @@
 package py.gov.datos;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
@@ -69,11 +70,7 @@ public class CsvToHtmlConverter implements FileConverter {
         templateEngine.setTemplateResolver(templateResolver);
 
         File htmlDir = new File(path + "def/");
-
-        if (!htmlDir.exists()) {
-            htmlDir.mkdir();
-        }
-
+        htmlDir.mkdir();
         copyResources(path);
         List<File> result = new ArrayList<>();
 
@@ -204,11 +201,7 @@ public class CsvToHtmlConverter implements FileConverter {
             context.getVariables().put("header", header);
             context.getVariables().put("table", table);
 
-            //System.out.println(header);
-            //System.out.println(table);
-
             String result = templateEngine.process("page", context);
-            //System.out.println(result);
             writeToFile(file.getName().substring(0, file.getName().indexOf('.')), path, result);
 
             br.close();
@@ -240,6 +233,7 @@ public class CsvToHtmlConverter implements FileConverter {
     }
 
     private void copyResources(String path) {
+
         byte[] buffer = new byte[1024];
         InputStream is = getClass().getResourceAsStream("/html_resources.zip");
         ZipInputStream zis = new ZipInputStream(is);

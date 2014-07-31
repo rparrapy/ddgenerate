@@ -29,6 +29,7 @@ package py.gov.datos;
  * MA 02111-1301, USA.
  */
 
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -66,9 +67,7 @@ public class XlsToCsvConverter implements FileConverter{
         try {
             XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(file));
             File csvDir = new File(path + "csv/");
-            if(!csvDir.exists()){
-                csvDir.mkdir();
-            }
+            csvDir.mkdir();
             for(int i= 0; i < workbook.getNumberOfSheets(); i++){
                 XSSFSheet sheet = workbook.getSheetAt(i);
                 File outputFile = new File(path + "csv/" + sheet.getSheetName() + ".csv");

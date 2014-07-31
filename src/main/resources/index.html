@@ -13,8 +13,8 @@
 <body>
 <div class="container">
     <div class="row">
-        <center><h2 th:text="${title}">Título principal de la página</h2></center>
         <table class="index-table table table-striped table-bordered table-hover">
+            <caption th:text="${title}"></caption>
             <thead>
             <tr>
                 <th th:each="head: ${headerOne}" th:text="${head}">#</th>

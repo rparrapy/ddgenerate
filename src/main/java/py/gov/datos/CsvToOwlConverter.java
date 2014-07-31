@@ -1,6 +1,7 @@
 package py.gov.datos;
 
 import org.apache.commons.codec.binary.StringUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
@@ -64,11 +65,7 @@ public class CsvToOwlConverter implements FileConverter {
         templateEngine.setTemplateResolver(templateResolver);
 
         File owlDir = new File(path + "def/");
-
-        if (!owlDir.exists()) {
-            owlDir.mkdir();
-        }
-
+        owlDir.mkdir();
         List<File> result = new ArrayList<>();
         for (File file : files) {
             if (file.getName().equals("Clases.csv")) {
