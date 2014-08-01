@@ -193,7 +193,9 @@ public class CsvToHtmlConverter implements FileConverter {
             String line;
             String headerLine = br.readLine();
             if(headerLine == null || headerLine.isEmpty()){
-                return null;
+            	fr.close();
+                br.close();
+            	return null;
             }
             String tableTitle = headerLine.replace("\"", "").replace(";", "");
             context.getVariables().put("title", tableTitle);

@@ -86,6 +86,9 @@ public class DDGenerate {
      * @see py.gov.datos.FileConverterType
      */
     public void generate() {
+    	if(!out.endsWith("/")){
+    		out = out + "/";
+    	}
         cleanOutputDir("def/", "csv/", "contexts/");
         Map<String, String> params = new HashMap<>();
         params.put("language", lang);
