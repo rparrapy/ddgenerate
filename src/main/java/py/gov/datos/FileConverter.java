@@ -34,11 +34,13 @@ import java.util.Map;
  */
 public interface FileConverter{
     /**
-     * Converts the given file to another format, placing the output
-     * in the directory specified by path.
+     * Convierte una lista de archivos que se recibe como parámetro a un formato determinado,
+     * colocando la salida en el directorio especificado.
      *
-     * @param file
-     * @param path
+     * @param files la lista de archivos a convertir.
+     * @param path el directorio de salida.
+     * @param params parámetros de configuración, como el idioma de la salida.
+     * @return la lista de archivos generados como parte de la operación.
      */
     List<File> convert(List<File> files, String path, Map<String, String> params);
 }

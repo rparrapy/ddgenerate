@@ -42,6 +42,10 @@ import java.util.zip.ZipInputStream;
  * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
  * MA 02111-1301, USA.
  */
+
+/**
+ * Convertidor de CSV a HTML.
+ */
 public class CsvToHtmlConverter implements FileConverter {
     private final Logger LOG = LoggerFactory.getLogger(XlsToCsvConverter.class);
     private final String SPLIT_BY = ";";
@@ -85,6 +89,15 @@ public class CsvToHtmlConverter implements FileConverter {
     }
 
 
+    /**
+     * Procesa el archivo .csv correspondiente al index.html.
+     *
+     * @param file archivo Clases.csv.
+     * @param path la ruta de salida de la conversión.
+     * @param templateEngine motor de plantillas utilizado para escribir el archivo de salida.
+     * @param params parámetros de configuración como el idioma a utilizar.
+     * @return el archivo index.html
+     */
     private File makeIndex(File file, String path, TemplateEngine templateEngine, Map<String, String> params) {
         IContext context = new Context();
         String lang = params.get("language");
@@ -162,6 +175,15 @@ public class CsvToHtmlConverter implements FileConverter {
         return null;
     }
 
+    /**
+     * Procesa un archivo .csv correspondiente a una clase del diccionario.
+     *
+     * @param file archivo .csv correspondiente a una clase del diccionario.
+     * @param path la ruta de salida de la conversión.
+     * @param templateEngine motor de plantillas utilizado para escribir el archivo de salida.
+     * @param params parámetros de configuración como el idioma a utilizar.
+     * @return el archivo .html correspondiente a la clase.
+     */
     private File makePage(File file, String path, TemplateEngine templateEngine, Map<String, String> params) {
         IContext context = new Context();
         String lang = params.get("language");
@@ -213,6 +235,15 @@ public class CsvToHtmlConverter implements FileConverter {
         return null;
     }
 
+    /**
+     * Crea un archivo de salida y escribe el contenido correspondiente.
+     *
+     * @param name el nombre del archivo a escribir.
+     * @param path la ruta donde se encuentra el archivo.
+     * @param content el contenido a escribir en el archivo.
+     * @return el archivo creado.
+     * @throws IOException
+     */
     private File writeToFile(String name, String path, String content) throws IOException {
         name = name.toLowerCase().replace("á", "a").replace("é", "e").replace("í", "i")
                 .replace("ó", "o").replace("ú", "u").replace(" ", "_");
@@ -230,6 +261,10 @@ public class CsvToHtmlConverter implements FileConverter {
 
     }
 
+    /**
+     * Copia el archivo html-resources.zip al directorio de salida.
+     * @param path la ruta del directorio de salida.
+     */
     private void copyResources(String path) {
 
         byte[] buffer = new byte[1024];
@@ -262,6 +297,18 @@ public class CsvToHtmlConverter implements FileConverter {
         }
     }
 
+    /**
+     * Elimina de la lista de elementos aquellos que corresponden a un idioma
+     * diferente al indicado.
+     *
+     * Si se trata del header, almacena en una lista los índices de las columnas
+     * a eliminar para las siguientes filas.
+     *
+     * @param lang el idioma seleccionado.
+     * @param elems la lista de elementos correspondiente a una fila del .csv
+     * @param header indica si la fila es o no el header de la tabla.
+     * @return la lista con las cadenas correspondientes al idioma seleccionado.
+     */
     private List<String> localizeTable(String lang, List<String> elems, boolean header){
         if(header){
             elems = localizeHeader(lang, elems);
@@ -273,6 +320,17 @@ public class CsvToHtmlConverter implements FileConverter {
         return elems;
     }
 
+    /**
+     * Elimina de la lista de elementos correspondiente al header de la tabla,
+     * aquellos que corresponden a un idioma diferente al indicado.
+     *
+     * Además, almacena los índices de las columnas a eliminar para las siguientes
+     * filas.
+     *
+     * @param lang el idioma seleccionado.
+     * @param elems la lista de elementos correspondiente a una fila del .csv
+     * @return la lista con las cadenas correspondientes al idioma seleccionado.
+     */
     private List<String> localizeHeader(String lang, List<String> elems){
         removedColumns = new ArrayList<>();
         List<String> result = new ArrayList<>();

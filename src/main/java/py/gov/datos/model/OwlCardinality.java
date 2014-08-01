@@ -28,6 +28,10 @@ package py.gov.datos.model;
  * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
  * MA 02111-1301, USA.
  */
+
+/**
+ * Modelo correspondiente a una restricción de cardinalidad OWL.
+ */
 public class OwlCardinality {
     private OwlProperty propiedad;
     private Integer cardinalidad;

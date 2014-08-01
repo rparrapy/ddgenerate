@@ -2,6 +2,7 @@ package py.gov.datos;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import py.gov.datos.model.CsvToJsonLdConverter;
 
 /*
  * @author	Rodrigo Parra	
@@ -31,10 +32,21 @@ import org.slf4j.LoggerFactory;
  * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
  * MA 02111-1301, USA.
  */
+
+/**
+ * Factory de convertidores de archivos.
+ */
 public class FileConverterFactory {
 
     private final Logger LOG = LoggerFactory.getLogger(FileConverterFactory.class);
 
+    /**
+     * Obtiene el convertidor correspondiente al tipo de conversión que recibe como parámetro.
+     *
+     * @see py.gov.datos.FileConverterType
+     * @param type tipo de conversión que se busca.
+     * @return el convertidor correspondiente.
+     */
     public FileConverter getFileConverter(FileConverterType type){
         FileConverter converter = null;
         switch (type){
@@ -46,6 +58,10 @@ public class FileConverterFactory {
                 break;
             case CSV_TO_OWL:
                 converter = new CsvToOwlConverter();
+                break;
+            case CSV_TO_JSONLD:
+                converter = new CsvToJsonLdConverter();
+                break;
         }
         if(converter == null){
             LOG.error("No converter found.");

@@ -31,6 +31,10 @@ import java.util.List;
  * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
  * MA 02111-1301, USA.
  */
+
+/**
+ * Modelo correspondiente a una clase OWL.
+ */
 public class OwlClass {
 
     private String nombre;
@@ -39,10 +43,12 @@ public class OwlClass {
     private String labelIngles;
     private String descripcionEspanhol;
     private String descripcionIngles;
+    private List<OwlProperty> properties;
 
     public OwlClass(String nombre) {
         this.nombre = nombre;
         this.cardinalidades = new ArrayList<>();
+        this.properties = new ArrayList<>();
     }
 
 
@@ -112,5 +118,13 @@ public class OwlClass {
     private String toProperCase(String s) {
         return s.substring(0, 1).toUpperCase() +
                 s.substring(1).toLowerCase();
+    }
+
+    public List<OwlProperty> getProperties() {
+        return properties;
+    }
+
+    public void addProperty(OwlProperty property) {
+        this.properties.add(property);
     }
 }

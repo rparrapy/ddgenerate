@@ -29,13 +29,11 @@ package py.gov.datos;
  * MA 02111-1301, USA.
  */
 
-import org.apache.commons.io.FileUtils;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +41,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Convertidor de XLSX a CSV.
+ */
 public class XlsToCsvConverter implements FileConverter{
 
     private final  Logger LOG = LoggerFactory.getLogger(XlsToCsvConverter.class);
@@ -62,6 +62,13 @@ public class XlsToCsvConverter implements FileConverter{
         return result;
     }
 
+    /**
+     * Convierte un único archivo XLSX a uno o más archivos CSV.
+     *
+     * @param file el archivo a convertir.
+     * @param path la ruta del directorio de salida.
+     * @return los archivos generados.
+     */
     private List<File> convert(File file, String path) {
         List<File> result = new ArrayList<File>();
         try {
@@ -89,6 +96,11 @@ public class XlsToCsvConverter implements FileConverter{
         return result;
     }
 
+    /**
+     * Convierte una hoja de una planilla XLSX a un archivo .csv
+     * @param sheet hoja a convertir.
+     * @return un archivo .csv
+     */
     private StringBuffer convertSheet(XSSFSheet sheet){
         StringBuffer data = new StringBuffer();
         Iterator<Row> rowIterator = sheet.iterator();
@@ -102,6 +114,12 @@ public class XlsToCsvConverter implements FileConverter{
         return data;
     }
 
+    /**
+     * Convierte una fila de una hoja XLSX a un archivo .csv
+     *
+     * @param row fila a convertir.
+     * @return fila del archivo .csv.
+     */
     private StringBuffer convertRow(Row row){
         StringBuffer data = new StringBuffer();
         Iterator<Cell> cellIterator = row.cellIterator();
@@ -117,6 +135,11 @@ public class XlsToCsvConverter implements FileConverter{
         return data;
     }
 
+    /**
+     * Convierte una celda de una planilla XLSX a un elemento de un archivo .csv.
+     * @param cell celda a convertir.
+     * @return elemento generado.
+     */
     private StringBuffer convertCell(Cell cell){
         StringBuffer data = new StringBuffer();
 

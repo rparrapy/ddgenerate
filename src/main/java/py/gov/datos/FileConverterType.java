@@ -29,6 +29,9 @@ package py.gov.datos;
  * MA 02111-1301, USA.
  */
 
+/**
+ * Representa una conversión de un formato de entrada a uno de salida.
+ */
 public enum FileConverterType {
-    XLS_TO_CSV, CSV_TO_HTML, XLS_TO_HTML, CSV_TO_OWL
+    XLS_TO_CSV, CSV_TO_HTML, XLS_TO_HTML, CSV_TO_OWL, CSV_TO_JSONLD
 }

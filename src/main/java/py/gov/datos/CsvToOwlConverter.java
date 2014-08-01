@@ -1,7 +1,5 @@
 package py.gov.datos;
 
-import org.apache.commons.codec.binary.StringUtils;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
@@ -12,7 +10,6 @@ import org.thymeleaf.templateresolver.TemplateResolver;
 import py.gov.datos.model.OwlCardinality;
 import py.gov.datos.model.OwlClass;
 import py.gov.datos.model.OwlProperty;
-import sun.rmi.runtime.Log;
 
 import java.io.*;
 import java.util.*;
@@ -45,12 +42,16 @@ import java.util.*;
  * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
  * MA 02111-1301, USA.
  */
+
+/**
+ * Convertidor de CSV a OWL.
+ */
 public class CsvToOwlConverter implements FileConverter {
 
     private final Logger LOG = LoggerFactory.getLogger(CsvToOwlConverter.class);
     private final String SPLIT_BY = ";";
-    private Map<String, OwlClass> classes = new HashMap<>();
-    private Map<String, OwlProperty> properties = new HashMap<>();
+    protected Map<String, OwlClass> classes = new HashMap<>();
+    protected Map<String, OwlProperty> properties = new HashMap<>();
 
 
 
@@ -69,9 +70,9 @@ public class CsvToOwlConverter implements FileConverter {
         List<File> result = new ArrayList<>();
         for (File file : files) {
             if (file.getName().equals("Clases.csv")) {
-                processIndex(file, path, templateEngine);
+                processIndex(file);
             }else{
-                processClass(file, path, templateEngine);
+                processClass(file);
             }
         }
 
@@ -103,7 +104,13 @@ public class CsvToOwlConverter implements FileConverter {
         return result;
     }
 
-    private void processIndex(File file, String s, TemplateEngine templateEngine) {
+    /**
+     * Obtiene las variables de contexto relacionadas a las clases OWL,
+     * a partir del archivo .csv correspondiente.
+     *
+     * @param file archivo Clases.csv
+     */
+    protected void processIndex(File file) {
         FileReader fr = null;
         try {
             fr = new FileReader(file);
@@ -129,6 +136,8 @@ public class CsvToOwlConverter implements FileConverter {
 
                 }
             }
+            fr.close();
+            br.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -136,7 +145,13 @@ public class CsvToOwlConverter implements FileConverter {
         }
     }
 
-    private void processClass(File file, String path, TemplateEngine templateEngine) {
+    /**
+     * Obtiene las variables de contexto relacionadas a las propiedades de cada clase
+     * OWL, a partir del archivo .csv correspondiente.
+     *
+     * @param file archivo CSV correspondiente a una clase en particular.
+     */
+    protected void processClass(File file) {
         FileReader fr = null;
         try {
             fr = new FileReader(file);
@@ -144,6 +159,8 @@ public class CsvToOwlConverter implements FileConverter {
             String line;
             String headerLine = br.readLine();
             if(headerLine == null || headerLine.isEmpty()){
+                fr.close();
+                br.close();
                 return;
             }
             String clazzName = headerLine.replace("\"", "").replace(";", "").split("clase")[1].trim();
@@ -161,6 +178,7 @@ public class CsvToOwlConverter implements FileConverter {
                         properties.put(prop.getOwlName(), prop);
                     }
                     prop.addClass(clazz);
+                    clazz.addProperty(prop);
                     String cardElem = elems.get(8);
                     if(cardElem.equals("1") || cardElem.toLowerCase().equals("single")){
                         OwlCardinality card = new OwlCardinality();
@@ -170,18 +188,27 @@ public class CsvToOwlConverter implements FileConverter {
                     }
                 }
             }
+            fr.close();
+            br.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return;
     }
 
+    /**
+     * Parsea una propiedad OWL a partir de la lista de elementos de una fila del CSV correspondiente.
+     * @param elems fila de elementos CSV.
+     * @param clazz clase a la cual corresponde la propiedad.
+     * @return instancia de OwlProperty correspondiente a la fila.
+     */
     private OwlProperty parseOwlProperty(List<String> elems, OwlClass clazz) {
         String nombre = elems.get(2).trim().replaceAll(" +", " ");
+        String nombreJSON = elems.get(0).trim().replaceAll(" +", " ");
         OwlProperty prop = new OwlProperty(nombre); //Debería ser 1 pero no está completo.
+        prop.setNombreJSON(nombreJSON);
         if(prop.getNombre().equals("identifier")){
             prop.setNombre("identifier" + clazz.getOwlName());
         }
@@ -206,6 +233,12 @@ public class CsvToOwlConverter implements FileConverter {
         return prop;
     }
 
+    /**
+     * Elimina los espacios vacíos de una lista de cadenas.
+     * Si un elemento está compuesto solo por espacios, se elimina.
+     *
+     * @param elems lista de elementos a procesar.
+     */
     private void removeEmpty(List<String> elems){
         Iterator<String> i = elems.iterator();
         while(i.hasNext()){
@@ -216,6 +249,12 @@ public class CsvToOwlConverter implements FileConverter {
         }
     }
 
+    /**
+     * Parsea una clase OWL a partir de la lista de elementos de una fila del CSV correspondiente.
+     *
+     * @param elems fila de elementos CSV.
+     * @return instancia de OwlClass correspondiente.
+     */
     private OwlClass parseOwlClass(List<String> elems){
         OwlClass clazz = new OwlClass(elems.get(0));
         clazz.setLabelEspanhol(elems.get(1));
@@ -227,6 +266,15 @@ public class CsvToOwlConverter implements FileConverter {
     }
 
 
+    /**
+     * Crea un archivo de salida y escribe el contenido correspondiente.
+     *
+     * @param name el nombre del archivo a escribir.
+     * @param path la ruta donde se encuentra el archivo.
+     * @param content el contenido a escribir en el archivo.
+     * @return el archivo creado.
+     * @throws IOException
+     */
     private File writeToFile(String name, String path, String content) throws IOException {
         File outputFile = new File(path + "def/" + name + ".owl");
         if (outputFile.createNewFile()) {

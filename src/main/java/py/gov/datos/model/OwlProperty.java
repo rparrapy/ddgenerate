@@ -31,6 +31,10 @@ import java.util.List;
  * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
  * MA 02111-1301, USA.
  */
+
+/**
+ * Modelo correspondiente a una propiedad OWL.
+ */
 public class OwlProperty {
     private String nombre;
     private List<String> labelsEspanhol;
@@ -39,6 +43,7 @@ public class OwlProperty {
     private String descripcionEspanhol;
     private String descripcionIngles;
     private List<OwlClass> classes;
+    private String nombreJSON;
 
     public OwlProperty(String nombre) {
         this.nombre = nombre;
@@ -123,6 +128,7 @@ public class OwlProperty {
             String suffix = result.substring(result.indexOf("_") + 1, result.length());
             return prefix.toLowerCase() + toCamelCase(suffix);
         }
+
         return this.nombre.toLowerCase();
     }
 
@@ -149,5 +155,13 @@ public class OwlProperty {
 
     public String getBasicType(){
         return this.tipo.split(":")[1];
+    }
+
+    public String getNombreJSON() {
+        return nombreJSON;
+    }
+
+    public void setNombreJSON(String nombreJSON) {
+        this.nombreJSON = nombreJSON;
     }
 }

@@ -39,6 +39,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Clase principal ejecutable del convertidor de diccionario de datos.
+ */
 public class DDGenerate {
     private final Logger LOG = LoggerFactory.getLogger(DDGenerate.class);
 
@@ -67,15 +70,27 @@ public class DDGenerate {
                 {FileConverterType.XLS_TO_CSV}));
         chainMap.put("owl", Arrays.asList(new FileConverterType[]
                 {FileConverterType.XLS_TO_CSV, FileConverterType.CSV_TO_OWL}));
+        chainMap.put("jsonld", Arrays.asList(new FileConverterType[]
+                {FileConverterType.XLS_TO_CSV, FileConverterType.CSV_TO_JSONLD}));
     }
 
+    /**
+     * Genera los archivos convertidos en el directorio de salida.
+     *
+     * Por cada formato de salida, lee los pasos necesarios para realizar la conversión.
+     * Ej: "html" -> XLS_TO_CSV + CSV_TO_HTML
+     *
+     * El primer paso recibe como entrada el archivo Excel del diccionario de datos.
+     * Cada paso siguiente recibe como entrada los archivos generados por el paso anterior.
+     *
+     * @see py.gov.datos.FileConverterType
+     */
     public void generate() {
-        cleanOutputDir("def/", "csv/");
+        cleanOutputDir("def/", "csv/", "contexts/");
         Map<String, String> params = new HashMap<>();
         params.put("language", lang);
 
         for(String format: formats){
-            cleanOutputDir("csv/");
             List<FileConverterType> chain = chainMap.get(format);
             for (String filename : files) {
                 File file = new File(filename);
@@ -83,9 +98,20 @@ public class DDGenerate {
                 convertee.add(file);
                 generate(convertee, chain, params);
             }
+            cleanOutputDir("csv/");
         }
     }
 
+    /**
+     * Convierte una lista de archivos a un formato determinado por el primer elemento
+     * de la lista de pasos que recibe como parámetro.
+     *
+     * Este método se ejecuta de forma recursiva hasta vacíar la lista de pasos de conversión.
+     *
+     * @param files la lista de archivos a convertir.
+     * @param chain lista de pasos, siendo cada paso una conversión de un formato a otro.
+     * @param params parámetros de configuración, por ejemplo, el idioma de salida.
+     */
     private void generate(List<File> files, List<FileConverterType> chain, Map<String, String> params) {
         if (!chain.isEmpty()) {
             FileConverter converter = f.getFileConverter(chain.get(0));
@@ -94,8 +120,11 @@ public class DDGenerate {
         }
     }
 
+    /**
+     * Elimina recursivamente una lista de directorios.
+     * @param dirList la lista de directorios a eliminar.
+     */
     private void cleanOutputDir(String... dirList){
-        System.gc();
         for(String dirName: dirList){
             File dir = new File(out + dirName);
             if(dir.exists()){
