@@ -1,4 +1,4 @@
-package py.gov.datos.model;
+package py.gov.datos;
 
 /*
  * @author	Rodrigo Parra
@@ -33,7 +33,9 @@ import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.OrderedJSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import py.gov.datos.CsvToOwlConverter;
+import py.gov.datos.model.OwlClass;
+import py.gov.datos.model.OwlCardinality;
+import py.gov.datos.model.OwlProperty;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -119,7 +121,9 @@ public class CsvToJsonLdConverter extends CsvToOwlConverter {
             }
 
             try {
-                result.add(writeToFile(clazz.getNombre().toLowerCase(), path, content.toString(4)));
+            	String str = content.toString(4);
+            	str = str.replace("\\/", "/");
+                result.add(writeToFile(clazz.getNombre().toLowerCase(), path, str));
             } catch (IOException e) {
                 LOG.error("Can not create output file");
             }

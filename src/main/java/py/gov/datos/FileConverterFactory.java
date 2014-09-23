@@ -2,7 +2,6 @@ package py.gov.datos;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import py.gov.datos.model.CsvToJsonLdConverter;
 
 /*
  * @author	Rodrigo Parra	
