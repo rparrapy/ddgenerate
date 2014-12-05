@@ -72,6 +72,8 @@ public class DDGenerate {
                 {FileConverterType.XLS_TO_CSV, FileConverterType.CSV_TO_OWL}));
         chainMap.put("jsonld", Arrays.asList(new FileConverterType[]
                 {FileConverterType.XLS_TO_CSV, FileConverterType.CSV_TO_JSONLD}));
+        chainMap.put("conf", Arrays.asList(new FileConverterType[]
+                {FileConverterType.XLS_TO_CSV, FileConverterType.CSV_TO_CONF}));
     }
 
     /**

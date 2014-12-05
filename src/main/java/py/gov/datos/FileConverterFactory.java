@@ -61,6 +61,8 @@ public class FileConverterFactory {
             case CSV_TO_JSONLD:
                 converter = new CsvToJsonLdConverter();
                 break;
+            case CSV_TO_CONF:
+            	converter = new CsvToConfConverter();
         }
         if(converter == null){
             LOG.error("No converter found.");

@@ -11,32 +11,34 @@
     <title th:text="${title}"></title>
 </head>
 <body>
-<h1 class="class-header">
-            <span style="float:left;">
-                <a href="index.html" title="Ir al inicio"><img alt="Home" src="img/home.png"></a>
-                <a href="index.html" title="Ir al inicio">Inicio</a>
-            </span>
-    <center th:text="${title}">Título principal de la página</center>
-</h1>
-<div class="container" class="class-container">
-    <div class="row">
-        <table class="class-table table table-striped table-bordered table-hover">
-            <thead>
-            <tr>
-                <th th:each="head: ${header}" th:text="${head}">#</th>
-            </tr>
+<div class="container">
+    <h1 class="class-header">
+                <span style="float:left;">
+                    <a href="index.html" title="Ir al inicio"><img alt="Home" src="img/home.png"></a>
+                    <a href="index.html" title="Ir al inicio">Inicio</a>
+                </span>
+        <center th:text="${title}">Título principal de la página</center>
+    </h1>
+    <div class="container" class="class-container">
+        <div class="row">
+            <table class="class-table table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th th:each="head: ${header}" th:text="${head}">#</th>
+                </tr>
 
-            </thead>
+                </thead>
 
-            <tbody>
-            <tr th:each="row: ${table}">
-                <td th:each="cell: ${row}"  class="table-cell"
-                    th:text="${cell}"></td>
+                <tbody>
+                <tr th:each="row: ${table}">
+                    <td th:each="cell: ${row}"  class="table-cell"
+                        th:text="${cell}"></td>
 
-            </tr>
-            </tbody>
+                </tr>
+                </tbody>
 
-        </table>
+            </table>
+        </div>
     </div>
 </div>
 </body>

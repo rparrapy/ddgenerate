@@ -1,6 +1,25 @@
 package py.gov.datos;
 
-import org.apache.commons.io.FileUtils;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
@@ -8,11 +27,6 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.context.IContext;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
-
-import java.io.*;
-import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 /*
  * @author	Rodrigo Parra	
@@ -23,7 +37,7 @@ import java.util.zip.ZipInputStream;
  * Copyright (C) 2014 Governance and Democracy Program
  * http://ceamso.org.py/es/proyectos/20-programa-de-democracia-y-gobernabilidad
  * 
-----------------------------------------------------------------------------
+ ----------------------------------------------------------------------------
  * This file is part of the Governance and Democracy Program USAID-CEAMSO,
  * is distributed as free software in the hope that it will be useful, but WITHOUT 
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
@@ -47,312 +61,346 @@ import java.util.zip.ZipInputStream;
  * Convertidor de CSV a HTML.
  */
 public class CsvToHtmlConverter implements FileConverter {
-    private final Logger LOG = LoggerFactory.getLogger(XlsToCsvConverter.class);
-    private final String SPLIT_BY = ";";
-    private static final Map<String, List<String>> LANG_REFERENCES;
-    private List<Integer> removedColumns = new ArrayList<>();
+	private final Logger LOG = LoggerFactory.getLogger(XlsToCsvConverter.class);
+	private final String SPLIT_BY = ";";
+	private static final Map<String, List<String>> LANG_REFERENCES;
+	private List<Integer> removedColumns = new ArrayList<>();
 
-    static {
-        LANG_REFERENCES = new HashMap<>();
+	static {
+		LANG_REFERENCES = new HashMap<>();
 
-        List<String> refEs = Arrays.asList(new String[]{": ESPAÑOL", ": ESPAÑOL,", ": Español"});
-        LANG_REFERENCES.put("es", refEs);
+		List<String> refEs = Arrays.asList(new String[] { ": ESPAÑOL",
+				": ESPAÑOL,", ": Español" });
+		LANG_REFERENCES.put("es", refEs);
 
-        List<String> refEn = Arrays.asList(new String[]{": INGLES", ": INGLES,", ": Inglés", ": Ingles"});
-        LANG_REFERENCES.put("en", refEn);
-    }
+		List<String> refEn = Arrays.asList(new String[] { ": INGLES",
+				": INGLES,", ": Inglés", ": Ingles" });
+		LANG_REFERENCES.put("en", refEn);
+	}
 
+	@Override
+	public List<File> convert(List<File> files, String path,
+			Map<String, String> params) {
+		TemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+		templateResolver.setTemplateMode("LEGACYHTML5");
+		templateResolver.setSuffix(".html");
+		templateResolver.setCacheable(false);
 
-    @Override
-    public List<File> convert(List<File> files, String path, Map<String, String> params) {
-        TemplateResolver templateResolver = new ClassLoaderTemplateResolver();
-        templateResolver.setTemplateMode("LEGACYHTML5");
-        templateResolver.setSuffix(".html");
-        templateResolver.setCacheable(false);
+		TemplateEngine templateEngine = new TemplateEngine();
+		templateEngine.setTemplateResolver(templateResolver);
 
-        TemplateEngine templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver);
+		File htmlDir = new File(path + "def/");
+		htmlDir.mkdir();
+		copyResources(path);
+		List<File> result = new ArrayList<>();
 
-        File htmlDir = new File(path + "def/");
-        htmlDir.mkdir();
-        copyResources(path);
-        List<File> result = new ArrayList<>();
+		for (File file : files) {
+			if (file.getName().equals("Clases.csv")) {
+				result.add(makeIndex(file, path, templateEngine, params));
+			} else {
+				result.add(makePage(file, path, templateEngine, params));
+			}
+		}
+		return result;
+	}
 
-        for (File file : files) {
-            if (file.getName().equals("Clases.csv")) {
-                result.add(makeIndex(file, path, templateEngine, params));
-            } else {
-                result.add(makePage(file, path, templateEngine,params));
-            }
-        }
-        return result;
-    }
+	/**
+	 * Procesa el archivo .csv correspondiente al index.html.
+	 * 
+	 * @param file
+	 *            archivo Clases.csv.
+	 * @param path
+	 *            la ruta de salida de la conversión.
+	 * @param templateEngine
+	 *            motor de plantillas utilizado para escribir el archivo de
+	 *            salida.
+	 * @param params
+	 *            parámetros de configuración como el idioma a utilizar.
+	 * @return el archivo index.html
+	 */
+	private File makeIndex(File file, String path,
+			TemplateEngine templateEngine, Map<String, String> params) {
+		IContext context = new Context();
+		String lang = params.get("language");
+		try {
+			FileReader fr = new FileReader(file);
+			BufferedReader br = new BufferedReader(fr);
+			String line;
+			String reference = br.readLine().replace("\"", "")
+					.replace(";", " ");
+			String tableTitle = br.readLine().replace("\"", "")
+					.replace(";", "");
+			context.getVariables().put("title", tableTitle);
+			context.getVariables().put("reference", reference);
 
+			boolean st = false;
+			List<String> headerOne = new ArrayList<>();
+			List<List<String>> tableOne = new ArrayList<>();
+			List<String> headerTwo = new ArrayList<>();
+			List<List<String>> tableTwo = new ArrayList<>();
+			List<String> urls = new ArrayList<>();
 
-    /**
-     * Procesa el archivo .csv correspondiente al index.html.
-     *
-     * @param file archivo Clases.csv.
-     * @param path la ruta de salida de la conversión.
-     * @param templateEngine motor de plantillas utilizado para escribir el archivo de salida.
-     * @param params parámetros de configuración como el idioma a utilizar.
-     * @return el archivo index.html
-     */
-    private File makeIndex(File file, String path, TemplateEngine templateEngine, Map<String, String> params) {
-        IContext context = new Context();
-        String lang = params.get("language");
-        try {
-            FileReader fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr);
-            String line;
-            String reference = br.readLine().replace("\"", "").replace(";", " ");
-            String tableTitle = br.readLine().replace("\"", "").replace(";", "");
-            context.getVariables().put("title", tableTitle);
-            context.getVariables().put("reference", reference);
+			while ((line = br.readLine()) != null) {
+				List<String> elems = new ArrayList<>(Arrays.asList(line
+						.replace("\"", "").split(SPLIT_BY)));
+				if (!elems.isEmpty()) {
+					if (elems.size() >= 2 && elems.get(1).equals("es")) {
+						elems = localizeTable(lang, elems, true);
+						headerOne.addAll(elems);
+						continue;
+					}
 
-            boolean st = false;
-            List<String> headerOne = new ArrayList<>();
-            List<List<String>> tableOne = new ArrayList<>();
-            List<String> headerTwo = new ArrayList<>();
-            List<List<String>> tableTwo = new ArrayList<>();
-            List<String> urls = new ArrayList<>();
+					if (elems.get(0).equals("Clases")) {
+						elems = localizeTable(lang, elems, true);
+						headerTwo.addAll(elems);
+						st = true;
+						continue;
+					}
+					elems = localizeTable(lang, elems, false);
+					if (st) {
+						if (elems.size() > 1) {
+							while (elems.size() < headerTwo.size()) {
+								elems.add("");
+							}
+							tableTwo.add(elems);
+							String name = elems.get(0);
+							name = name.toLowerCase().replace("á", "a")
+									.replace("é", "e").replace("í", "i")
+									.replace("ó", "o").replace("ú", "u")
+									.replace(" ", "_");
+							urls.add(name + ".html");
+						}
+					} else {
+						if (elems.size() > 1) {
+							while (elems.size() < headerOne.size()) {
+								elems.add("");
+							}
+							tableOne.add(elems);
+						}
+					}
+				}
+			}
 
-            while ((line = br.readLine()) != null) {
-                List<String> elems = new ArrayList<>(Arrays.asList(line.replace("\"", "").split(SPLIT_BY)));
-                if (!elems.isEmpty()) {
-                    if (elems.size() >= 2 && elems.get(1).equals("es")) {
-                        elems = localizeTable(lang, elems, true);
-                        headerOne.addAll(elems);
-                        continue;
-                    }
+			context.getVariables().put("headerOne", headerOne);
+			context.getVariables().put("headerTwo", headerTwo);
+			context.getVariables().put("tableOne", tableOne);
+			context.getVariables().put("tableTwo", tableTwo);
+			context.getVariables().put("urls", urls);
 
-                    if (elems.get(0).equals("Clases")) {
-                        elems = localizeTable(lang, elems, true);
-                        headerTwo.addAll(elems);
-                        st = true;
-                        continue;
-                    }
-                    elems = localizeTable(lang, elems, false);
-                    if (st) {
-                        if (elems.size() > 1) {
-                            while (elems.size() < headerTwo.size()) {
-                                elems.add("");
-                            }
-                            tableTwo.add(elems);
-                            String name = elems.get(0);
-                            name = name.toLowerCase().replace("á", "a").replace("é", "e").replace("í", "i")
-                                    .replace("ó", "o").replace("ú", "u").replace(" ", "_");
-                            urls.add(name + ".html");
-                        }
-                    } else {
-                        if (elems.size() > 1) {
-                            while (elems.size() < headerOne.size()) {
-                                elems.add("");
-                            }
-                            tableOne.add(elems);
-                        }
-                    }
-                }
-            }
+			String result = templateEngine.process("index", context);
+			writeToFile("index", path, result);
 
-            context.getVariables().put("headerOne", headerOne);
-            context.getVariables().put("headerTwo", headerTwo);
-            context.getVariables().put("tableOne", tableOne);
-            context.getVariables().put("tableTwo", tableTwo);
-            context.getVariables().put("urls", urls);
+			br.close();
+			fr.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-            String result = templateEngine.process("index", context);
-            writeToFile("index", path, result);
+		return null;
+	}
 
-            br.close();
-            fr.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+	/**
+	 * Procesa un archivo .csv correspondiente a una clase del diccionario.
+	 * 
+	 * @param file
+	 *            archivo .csv correspondiente a una clase del diccionario.
+	 * @param path
+	 *            la ruta de salida de la conversión.
+	 * @param templateEngine
+	 *            motor de plantillas utilizado para escribir el archivo de
+	 *            salida.
+	 * @param params
+	 *            parámetros de configuración como el idioma a utilizar.
+	 * @return el archivo .html correspondiente a la clase.
+	 */
+	private File makePage(File file, String path,
+			TemplateEngine templateEngine, Map<String, String> params) {
+		IContext context = new Context();
+		String lang = params.get("language");
+		try {
+			FileReader fr = new FileReader(file);
+			BufferedReader br = new BufferedReader(fr);
+			String line;
+			String headerLine = br.readLine();
+			if (headerLine == null || headerLine.isEmpty()) {
+				fr.close();
+				br.close();
+				return null;
+			}
+			String tableTitle = headerLine.replace("\"", "").replace(";", "");
+			context.getVariables().put("title", tableTitle);
 
-        return null;
-    }
+			List<String> header = new ArrayList<>();
+			List<List<String>> table = new ArrayList<>();
+			int cont = 0;
 
-    /**
-     * Procesa un archivo .csv correspondiente a una clase del diccionario.
-     *
-     * @param file archivo .csv correspondiente a una clase del diccionario.
-     * @param path la ruta de salida de la conversión.
-     * @param templateEngine motor de plantillas utilizado para escribir el archivo de salida.
-     * @param params parámetros de configuración como el idioma a utilizar.
-     * @return el archivo .html correspondiente a la clase.
-     */
-    private File makePage(File file, String path, TemplateEngine templateEngine, Map<String, String> params) {
-        IContext context = new Context();
-        String lang = params.get("language");
-        try {
-            FileReader fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr);
-            String line;
-            String headerLine = br.readLine();
-            if(headerLine == null || headerLine.isEmpty()){
-            	fr.close();
-                br.close();
-            	return null;
-            }
-            String tableTitle = headerLine.replace("\"", "").replace(";", "");
-            context.getVariables().put("title", tableTitle);
+			while ((line = br.readLine()) != null) {
+				List<String> elems = new ArrayList<>(Arrays.asList(line
+						.replace("\"", "").split(SPLIT_BY)));
+				if (elems.size() > 1) {
+					if (cont == 0) {
+						elems = localizeTable(lang, elems, true);
+						header.addAll(elems.subList(1, elems.size()));
+					} else {
+						elems = localizeTable(lang, elems, false);
+						while (elems.size() < header.size() + 1) {
+							elems.add("");
+						}
+						table.add(elems.subList(1, elems.size()));
+					}
+					cont++;
+				}
+			}
+			context.getVariables().put("header", header);
+			context.getVariables().put("table", table);
 
-            List<String> header = new ArrayList<>();
-            List<List<String>> table = new ArrayList<>();
-            int cont = 0;
+			String result = templateEngine.process("page", context);
+			writeToFile(file.getName()
+					.substring(0, file.getName().indexOf('.')), path, result);
 
-            while ((line = br.readLine()) != null) {
-                List<String> elems = new ArrayList<>(Arrays.asList(line.replace("\"", "").split(SPLIT_BY)));
-                if (!elems.isEmpty()) {
-                if(cont == 0){
-                    elems = localizeTable(lang, elems, true);
-                    header.addAll(elems);
-                }else{
-                    elems = localizeTable(lang, elems, false);
-                    while (elems.size() < header.size()) {
-                        elems.add("");
-                    }
-                    table.add(elems);
-                }
-                    cont++;
-                }
-            }
-            context.getVariables().put("header", header);
-            context.getVariables().put("table", table);
+			br.close();
+			fr.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-            String result = templateEngine.process("page", context);
-            writeToFile(file.getName().substring(0, file.getName().indexOf('.')), path, result);
+		return null;
+	}
 
-            br.close();
-            fr.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+	/**
+	 * Crea un archivo de salida y escribe el contenido correspondiente.
+	 * 
+	 * @param name
+	 *            el nombre del archivo a escribir.
+	 * @param path
+	 *            la ruta donde se encuentra el archivo.
+	 * @param content
+	 *            el contenido a escribir en el archivo.
+	 * @return el archivo creado.
+	 * @throws IOException
+	 */
+	private File writeToFile(String name, String path, String content)
+			throws IOException {
+		name = name.toLowerCase().replace("á", "a").replace("é", "e")
+				.replace("í", "i").replace("ó", "o").replace("ú", "u")
+				.replace(" ", "_");
+		File outputFile = new File(path + "def/" + name + ".html");
+		if (outputFile.createNewFile()) {
+			Writer out = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(outputFile), "UTF-8"));
+			out.write(content);
+			out.flush();
+			out.close();
+		} else {
+			LOG.error("Can not create output file");
+		}
+		return outputFile;
 
-        return null;
-    }
+	}
 
-    /**
-     * Crea un archivo de salida y escribe el contenido correspondiente.
-     *
-     * @param name el nombre del archivo a escribir.
-     * @param path la ruta donde se encuentra el archivo.
-     * @param content el contenido a escribir en el archivo.
-     * @return el archivo creado.
-     * @throws IOException
-     */
-    private File writeToFile(String name, String path, String content) throws IOException {
-        name = name.toLowerCase().replace("á", "a").replace("é", "e").replace("í", "i")
-                .replace("ó", "o").replace("ú", "u").replace(" ", "_");
-        File outputFile = new File(path + "def/" + name + ".html");
-        if (outputFile.createNewFile()) {
-            Writer out = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(outputFile), "UTF-8"));
-            out.write(content);
-            out.flush();
-            out.close();
-        } else {
-            LOG.error("Can not create output file");
-        }
-        return outputFile;
+	/**
+	 * Copia el archivo html-resources.zip al directorio de salida.
+	 * 
+	 * @param path
+	 *            la ruta del directorio de salida.
+	 */
+	private void copyResources(String path) {
 
-    }
+		byte[] buffer = new byte[1024];
+		InputStream is = getClass().getResourceAsStream("/html_resources.zip");
+		ZipInputStream zis = new ZipInputStream(is);
+		ZipEntry ze;
 
-    /**
-     * Copia el archivo html-resources.zip al directorio de salida.
-     * @param path la ruta del directorio de salida.
-     */
-    private void copyResources(String path) {
+		try {
+			while ((ze = zis.getNextEntry()) != null) {
+				String fileName = ze.getName();
+				File newFile = new File(path + "def/" + fileName);
+				if (ze.isDirectory()) {
+					newFile.mkdir();
+				} else {
+					FileOutputStream fos = new FileOutputStream(newFile);
 
-        byte[] buffer = new byte[1024];
-        InputStream is = getClass().getResourceAsStream("/html_resources.zip");
-        ZipInputStream zis = new ZipInputStream(is);
-        ZipEntry ze;
+					int len;
+					while ((len = zis.read(buffer)) > 0) {
+						fos.write(buffer, 0, len);
+					}
+					fos.close();
+				}
+			}
 
-        try {
-            while ((ze = zis.getNextEntry()) != null) {
-                String fileName = ze.getName();
-                File newFile = new File(path + "def/" + fileName);
-                if (ze.isDirectory()) {
-                    newFile.mkdir();
-                } else {
-                    FileOutputStream fos = new FileOutputStream(newFile);
+			zis.closeEntry();
+			zis.close();
+		} catch (IOException e) {
+			LOG.error("Can not extract zip file content");
+			e.printStackTrace();
+		}
+	}
 
-                    int len;
-                    while ((len = zis.read(buffer)) > 0) {
-                        fos.write(buffer, 0, len);
-                    }
-                    fos.close();
-                }
-            }
+	/**
+	 * Elimina de la lista de elementos aquellos que corresponden a un idioma
+	 * diferente al indicado.
+	 * 
+	 * Si se trata del header, almacena en una lista los índices de las columnas
+	 * a eliminar para las siguientes filas.
+	 * 
+	 * @param lang
+	 *            el idioma seleccionado.
+	 * @param elems
+	 *            la lista de elementos correspondiente a una fila del .csv
+	 * @param header
+	 *            indica si la fila es o no el header de la tabla.
+	 * @return la lista con las cadenas correspondientes al idioma seleccionado.
+	 */
+	private List<String> localizeTable(String lang, List<String> elems,
+			boolean header) {
+		if (header) {
+			elems = localizeHeader(lang, elems);
+		}
+		for (Integer j : removedColumns) {
+			if (j.intValue() < elems.size())
+				elems.remove(j.intValue());
+		}
+		return elems;
+	}
 
-            zis.closeEntry();
-            zis.close();
-        } catch (IOException e) {
-            LOG.error("Can not extract zip file content");
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Elimina de la lista de elementos aquellos que corresponden a un idioma
-     * diferente al indicado.
-     *
-     * Si se trata del header, almacena en una lista los índices de las columnas
-     * a eliminar para las siguientes filas.
-     *
-     * @param lang el idioma seleccionado.
-     * @param elems la lista de elementos correspondiente a una fila del .csv
-     * @param header indica si la fila es o no el header de la tabla.
-     * @return la lista con las cadenas correspondientes al idioma seleccionado.
-     */
-    private List<String> localizeTable(String lang, List<String> elems, boolean header){
-        if(header){
-            elems = localizeHeader(lang, elems);
-        }
-        for(Integer j: removedColumns){
-            if(j.intValue() < elems.size())
-            elems.remove(j.intValue());
-        }
-        return elems;
-    }
-
-    /**
-     * Elimina de la lista de elementos correspondiente al header de la tabla,
-     * aquellos que corresponden a un idioma diferente al indicado.
-     *
-     * Además, almacena los índices de las columnas a eliminar para las siguientes
-     * filas.
-     *
-     * @param lang el idioma seleccionado.
-     * @param elems la lista de elementos correspondiente a una fila del .csv
-     * @return la lista con las cadenas correspondientes al idioma seleccionado.
-     */
-    private List<String> localizeHeader(String lang, List<String> elems){
-        removedColumns = new ArrayList<>();
-        List<String> result = new ArrayList<>();
-        int i = 0;
-        for(String elem: elems){
-            for(String candidateLang: LANG_REFERENCES.keySet()){
-                for(String toRemove: LANG_REFERENCES.get(candidateLang)){
-                    if(elem.contains(toRemove) || elem.equals(candidateLang)){
-                        elem = elem.replace(toRemove, "");
-                        if(!candidateLang.equals(lang)){
-                            removedColumns.add(i);
-                        }
-                    }
-                }}
-            i++;
-            result.add(elem);
-        }
-        removedColumns = new ArrayList<>(new HashSet<>(removedColumns));
-        Collections.sort(removedColumns, Collections.reverseOrder());
-        return result;
-    }
+	/**
+	 * Elimina de la lista de elementos correspondiente al header de la tabla,
+	 * aquellos que corresponden a un idioma diferente al indicado.
+	 * 
+	 * Además, almacena los índices de las columnas a eliminar para las
+	 * siguientes filas.
+	 * 
+	 * @param lang
+	 *            el idioma seleccionado.
+	 * @param elems
+	 *            la lista de elementos correspondiente a una fila del .csv
+	 * @return la lista con las cadenas correspondientes al idioma seleccionado.
+	 */
+	private List<String> localizeHeader(String lang, List<String> elems) {
+		removedColumns = new ArrayList<>();
+		List<String> result = new ArrayList<>();
+		int i = 0;
+		for (String elem : elems) {
+			for (String candidateLang : LANG_REFERENCES.keySet()) {
+				for (String toRemove : LANG_REFERENCES.get(candidateLang)) {
+					if (elem.contains(toRemove) || elem.equals(candidateLang)) {
+						elem = elem.replace(toRemove, "");
+						if (!candidateLang.equals(lang)) {
+							removedColumns.add(i);
+						}
+					}
+				}
+			}
+			i++;
+			result.add(elem);
+		}
+		removedColumns = new ArrayList<>(new HashSet<>(removedColumns));
+		Collections.sort(removedColumns, Collections.reverseOrder());
+		return result;
+	}
 
 }

@@ -23,7 +23,7 @@ import java.util.*;
  * Copyright (C) 2014 Governance and Democracy Program
  * http://ceamso.org.py/es/proyectos/20-programa-de-democracia-y-gobernabilidad
  * 
-----------------------------------------------------------------------------
+ ----------------------------------------------------------------------------
  * This file is part of the Governance and Democracy Program USAID-CEAMSO,
  * is distributed as free software in the hope that it will be useful, but WITHOUT 
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
@@ -48,247 +48,265 @@ import java.util.*;
  */
 public class CsvToOwlConverter implements FileConverter {
 
-    private final Logger LOG = LoggerFactory.getLogger(CsvToOwlConverter.class);
-    private final String SPLIT_BY = ";";
-    protected Map<String, OwlClass> classes = new HashMap<>();
-    protected Map<String, OwlProperty> properties = new HashMap<>();
+	private final Logger LOG = LoggerFactory.getLogger(CsvToOwlConverter.class);
+	private final String SPLIT_BY = ";";
+	protected Map<String, OwlClass> classes = new HashMap<>();
+	protected Map<String, OwlProperty> properties = new HashMap<>();
 
+	@Override
+	public List<File> convert(List<File> files, String path,
+			Map<String, String> params) {
+		TemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+		templateResolver.setTemplateMode("LEGACYHTML5");
+		templateResolver.setSuffix(".owl");
+		templateResolver.setCacheable(false);
 
+		TemplateEngine templateEngine = new TemplateEngine();
+		templateEngine.setTemplateResolver(templateResolver);
 
-    @Override
-    public List<File> convert(List<File> files, String path, Map<String, String> params) {
-        TemplateResolver templateResolver = new ClassLoaderTemplateResolver();
-        templateResolver.setTemplateMode("LEGACYHTML5");
-        templateResolver.setSuffix(".owl");
-        templateResolver.setCacheable(false);
+		File owlDir = new File(path + "def/");
+		owlDir.mkdir();
+		List<File> result = new ArrayList<>();
+		for (File file : files) {
+			if (file.getName().equals("Clases.csv")) {
+				processIndex(file);
+			} else {
+				processClass(file);
+			}
+		}
 
-        TemplateEngine templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver);
+		IContext context = new Context();
 
-        File owlDir = new File(path + "def/");
-        owlDir.mkdir();
-        List<File> result = new ArrayList<>();
-        for (File file : files) {
-            if (file.getName().equals("Clases.csv")) {
-                processIndex(file);
-            }else{
-                processClass(file);
-            }
-        }
+		context.getVariables().put("classes", classes.values());
 
-        IContext context = new Context();
+		List<OwlProperty> objectProperties = new ArrayList<>();
+		List<OwlProperty> datatypeProperties = new ArrayList<>();
 
-        context.getVariables().put("classes", classes.values());
+		for (OwlProperty p : properties.values()) {
+			if (p.isObjectProperty()) {
+				objectProperties.add(p);
+			} else {
+				datatypeProperties.add(p);
+			}
+		}
 
-        List<OwlProperty> objectProperties = new ArrayList<>();
-        List<OwlProperty> datatypeProperties = new ArrayList<>();
+		context.getVariables().put("datatypeProperties", datatypeProperties);
+		context.getVariables().put("objectProperties", objectProperties);
+		String dncp = templateEngine.process("dncp", context);
 
-        for(OwlProperty p: properties.values()){
-            if(p.isObjectProperty()){
-                objectProperties.add(p);
-            }else{
-                datatypeProperties.add(p);
-            }
-        }
+		try {
+			result.add(writeToFile("dncp", path, dncp));
+		} catch (IOException e) {
+			LOG.error("Can not create output file");
+		}
 
-        context.getVariables().put("datatypeProperties", datatypeProperties);
-        context.getVariables().put("objectProperties", objectProperties);
-        String dncp = templateEngine.process("dncp", context);
+		return result;
+	}
 
-        try {
-            result.add(writeToFile("dncp", path, dncp));
-        } catch (IOException e) {
-            LOG.error("Can not create output file");
-        }
+	/**
+	 * Obtiene las variables de contexto relacionadas a las clases OWL, a partir
+	 * del archivo .csv correspondiente.
+	 * 
+	 * @param file
+	 *            archivo Clases.csv
+	 */
+	protected void processIndex(File file) {
+		FileReader fr = null;
+		try {
+			fr = new FileReader(file);
+			BufferedReader br = new BufferedReader(fr);
+			String line;
 
-        return result;
-    }
+			ArrayList<String> columns = new ArrayList<>();
+			boolean flag = false;
+			while ((line = br.readLine()) != null) {
+				List<String> elems = new ArrayList<>(Arrays.asList(line
+						.replace("\"", "").split(SPLIT_BY)));
+				if (!elems.isEmpty() && !line.replace(" ", "").isEmpty()) {
+					if (flag) {
+						while (elems.size() < columns.size()) {
+							elems.add("");
+						}
+						OwlClass clazz = parseOwlClass(elems);
+						classes.put(clazz.getNombre(), clazz);
+					}
+					if (elems.get(0).equals("Clases")) {
+						flag = true;
+						columns = new ArrayList<>(elems);
+					}
 
-    /**
-     * Obtiene las variables de contexto relacionadas a las clases OWL,
-     * a partir del archivo .csv correspondiente.
-     *
-     * @param file archivo Clases.csv
-     */
-    protected void processIndex(File file) {
-        FileReader fr = null;
-        try {
-            fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr);
-            String line;
+				}
+			}
+			fr.close();
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-            ArrayList<String> columns = new ArrayList<>();
-            boolean flag = false;
-            while ((line = br.readLine()) != null) {
-                List<String> elems = new ArrayList<>(Arrays.asList(line.replace("\"", "").split(SPLIT_BY)));
-                if(!elems.isEmpty() && !line.replace(" ", "").isEmpty()){
-                    if(flag){
-                        while (elems.size() < columns.size()) {
-                            elems.add("");
-                        }
-                        OwlClass clazz = parseOwlClass(elems);
-                        classes.put(clazz.getNombre(), clazz);
-                    }
-                    if(elems.get(0).equals("Clases")){
-                        flag = true;
-                        columns = new ArrayList<>(elems);
-                    }
+	/**
+	 * Obtiene las variables de contexto relacionadas a las propiedades de cada
+	 * clase OWL, a partir del archivo .csv correspondiente.
+	 * 
+	 * @param file
+	 *            archivo CSV correspondiente a una clase en particular.
+	 */
+	protected void processClass(File file) {
+		FileReader fr = null;
+		try {
+			fr = new FileReader(file);
+			BufferedReader br = new BufferedReader(fr);
+			String line;
+			String headerLine = br.readLine();
+			if (headerLine == null || headerLine.isEmpty()) {
+				fr.close();
+				br.close();
+				return;
+			}
+			String clazzName = headerLine.replace("\"", "").replace(";", "")
+					.split("clase")[1].trim();
+			OwlClass clazz = classes.get(clazzName);
+			ArrayList<String> columns = new ArrayList<>(Arrays.asList(br
+					.readLine().replace("\"", "").split(SPLIT_BY)));
 
-                }
-            }
-            fr.close();
-            br.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+			while ((line = br.readLine()) != null) {
+				List<String> elems = new ArrayList<>(Arrays.asList(line
+						.replace("\"", "").split(SPLIT_BY)));
+				if (!elems.isEmpty() && elems.get(0).length() > 0) {
+					while (elems.size() < columns.size()) {
+						elems.add("");
+					}
+					OwlProperty prop = parseOwlProperty(elems, clazz);
+					if (!properties.containsKey(prop.getOwlName())) {
+						properties.put(prop.getOwlName(), prop);
+					}
+					prop.addClass(clazz);
+					clazz.addProperty(prop);
+					String cardElem = elems.get(8);
+					if (cardElem.equals("1")
+							|| cardElem.toLowerCase().equals("single")) {
+						OwlCardinality card = new OwlCardinality();
+						card.setCardinalidad(1);
+						card.setPropiedad(prop);
+						clazz.addCardinalidad(card);
+					}
+				}
+			}
+			fr.close();
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-    /**
-     * Obtiene las variables de contexto relacionadas a las propiedades de cada clase
-     * OWL, a partir del archivo .csv correspondiente.
-     *
-     * @param file archivo CSV correspondiente a una clase en particular.
-     */
-    protected void processClass(File file) {
-        FileReader fr = null;
-        try {
-            fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr);
-            String line;
-            String headerLine = br.readLine();
-            if(headerLine == null || headerLine.isEmpty()){
-                fr.close();
-                br.close();
-                return;
-            }
-            String clazzName = headerLine.replace("\"", "").replace(";", "").split("clase")[1].trim();
-            OwlClass clazz = classes.get(clazzName);
-            ArrayList<String> columns = new ArrayList<>(Arrays.asList(br.readLine().replace("\"", "").split(SPLIT_BY)));
+	}
 
-            while ((line = br.readLine()) != null) {
-                List<String> elems = new ArrayList<>(Arrays.asList(line.replace("\"", "").split(SPLIT_BY)));
-                if (!elems.isEmpty() && elems.get(0).length() > 0) {
-                    while (elems.size() < columns.size()) {
-                        elems.add("");
-                    }
-                    OwlProperty prop = parseOwlProperty(elems, clazz);
-                    if(!properties.containsKey(prop.getOwlName())){
-                        properties.put(prop.getOwlName(), prop);
-                    }
-                    prop.addClass(clazz);
-                    clazz.addProperty(prop);
-                    String cardElem = elems.get(8);
-                    if(cardElem.equals("1") || cardElem.toLowerCase().equals("single")){
-                        OwlCardinality card = new OwlCardinality();
-                        card.setCardinalidad(1);
-                        card.setPropiedad(prop);
-                        clazz.addCardinalidad(card);
-                    }
-                }
-            }
-            fr.close();
-            br.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+	/**
+	 * Parsea una propiedad OWL a partir de la lista de elementos de una fila
+	 * del CSV correspondiente.
+	 * 
+	 * @param elems
+	 *            fila de elementos CSV.
+	 * @param clazz
+	 *            clase a la cual corresponde la propiedad.
+	 * @return instancia de OwlProperty correspondiente a la fila.
+	 */
+	private OwlProperty parseOwlProperty(List<String> elems, OwlClass clazz) {
+		String nombre = elems.get(3).trim().replaceAll(" +", " ");
+		String nombreJSON = elems.get(1).trim().replaceAll(" +", " ");
+		OwlProperty prop = new OwlProperty(nombre); // Debería ser 1 pero no
+													// está completo.
+		prop.setNombreJSON(nombreJSON);
+		if (prop.getNombre().equals("identifier")) {
+			prop.setNombre("identifier" + clazz.getOwlName());
+		}
+		prop.setDescripcionEspanhol(elems.get(12));
+		prop.setDescripcionIngles(elems.get(13));
+		String tipo = elems.get(8);
 
-    }
+		if (Character.isUpperCase(tipo.charAt(0))) {
+			prop.setTipo(tipo);
+		} else {
+			prop.setTipo(new OwlClass(tipo).getOwlName());
+		}
 
-    /**
-     * Parsea una propiedad OWL a partir de la lista de elementos de una fila del CSV correspondiente.
-     * @param elems fila de elementos CSV.
-     * @param clazz clase a la cual corresponde la propiedad.
-     * @return instancia de OwlProperty correspondiente a la fila.
-     */
-    private OwlProperty parseOwlProperty(List<String> elems, OwlClass clazz) {
-        String nombre = elems.get(2).trim().replaceAll(" +", " ");
-        String nombreJSON = elems.get(0).trim().replaceAll(" +", " ");
-        OwlProperty prop = new OwlProperty(nombre); //Debería ser 1 pero no está completo.
-        prop.setNombreJSON(nombreJSON);
-        if(prop.getNombre().equals("identifier")){
-            prop.setNombre("identifier" + clazz.getOwlName());
-        }
-        prop.setDescripcionEspanhol(elems.get(11));
-        prop.setDescripcionIngles(elems.get(12));
-        String tipo = elems.get(7);
+		List<String> labelsEspanhol = new ArrayList<>(Arrays.asList(elems
+				.get(5).split(",")));
+		labelsEspanhol.add(elems.get(3));
+		removeEmpty(labelsEspanhol);
+		prop.setLabelsEspanhol(labelsEspanhol);
 
-        if(tipo.startsWith("xsd")){
-            prop.setTipo(tipo);
-        }else{
-            prop.setTipo(new OwlClass(tipo).getOwlName());
-        }
+		List<String> labelsIngles = new ArrayList<>(Arrays.asList(elems.get(6)
+				.split(",")));
+		prop.setLabelsIngles(labelsIngles);
+		removeEmpty(labelsIngles);
+		return prop;
+	}
 
-        List<String> labelsEspanhol = new ArrayList<>(Arrays.asList(elems.get(4).split(",")));
-        labelsEspanhol.add(elems.get(2));
-        removeEmpty(labelsEspanhol);
-        prop.setLabelsEspanhol(labelsEspanhol);
+	/**
+	 * Elimina los espacios vacíos de una lista de cadenas. Si un elemento está
+	 * compuesto solo por espacios, se elimina.
+	 * 
+	 * @param elems
+	 *            lista de elementos a procesar.
+	 */
+	private void removeEmpty(List<String> elems) {
+		Iterator<String> i = elems.iterator();
+		while (i.hasNext()) {
+			String l = i.next();
+			if (l.replace(" ", "").isEmpty()) {
+				i.remove();
+			}
+		}
+	}
 
-        List<String> labelsIngles = new ArrayList<>(Arrays.asList(elems.get(5).split(",")));
-        prop.setLabelsIngles(labelsIngles);
-        removeEmpty(labelsIngles);
-        return prop;
-    }
+	/**
+	 * Parsea una clase OWL a partir de la lista de elementos de una fila del
+	 * CSV correspondiente.
+	 * 
+	 * @param elems
+	 *            fila de elementos CSV.
+	 * @return instancia de OwlClass correspondiente.
+	 */
+	private OwlClass parseOwlClass(List<String> elems) {
+		OwlClass clazz = new OwlClass(elems.get(0));
+		clazz.setLabelEspanhol(elems.get(1));
+		clazz.setLabelIngles(elems.get(2));
+		clazz.setDescripcionEspanhol(elems.get(3));
+		clazz.setDescripcionIngles(elems.get(4));
 
-    /**
-     * Elimina los espacios vacíos de una lista de cadenas.
-     * Si un elemento está compuesto solo por espacios, se elimina.
-     *
-     * @param elems lista de elementos a procesar.
-     */
-    private void removeEmpty(List<String> elems){
-        Iterator<String> i = elems.iterator();
-        while(i.hasNext()){
-            String l = i.next();
-            if(l.replace(" ", "").isEmpty()){
-                i.remove();
-            }
-        }
-    }
+		return clazz;
+	}
 
-    /**
-     * Parsea una clase OWL a partir de la lista de elementos de una fila del CSV correspondiente.
-     *
-     * @param elems fila de elementos CSV.
-     * @return instancia de OwlClass correspondiente.
-     */
-    private OwlClass parseOwlClass(List<String> elems){
-        OwlClass clazz = new OwlClass(elems.get(0));
-        clazz.setLabelEspanhol(elems.get(1));
-        clazz.setLabelIngles(elems.get(2));
-        clazz.setDescripcionEspanhol(elems.get(3));
-        clazz.setDescripcionIngles(elems.get(4));
+	/**
+	 * Crea un archivo de salida y escribe el contenido correspondiente.
+	 * 
+	 * @param name
+	 *            el nombre del archivo a escribir.
+	 * @param path
+	 *            la ruta donde se encuentra el archivo.
+	 * @param content
+	 *            el contenido a escribir en el archivo.
+	 * @return el archivo creado.
+	 * @throws IOException
+	 */
+	private File writeToFile(String name, String path, String content)
+			throws IOException {
+		File outputFile = new File(path + "def/" + name + ".owl");
+		if (outputFile.createNewFile()) {
+			Writer out = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(outputFile), "UTF-8"));
+			out.write(content);
+			out.flush();
+			out.close();
+		} else {
+			LOG.error("Can not create output file");
+		}
+		return outputFile;
 
-        return clazz;
-    }
-
-
-    /**
-     * Crea un archivo de salida y escribe el contenido correspondiente.
-     *
-     * @param name el nombre del archivo a escribir.
-     * @param path la ruta donde se encuentra el archivo.
-     * @param content el contenido a escribir en el archivo.
-     * @return el archivo creado.
-     * @throws IOException
-     */
-    private File writeToFile(String name, String path, String content) throws IOException {
-        File outputFile = new File(path + "def/" + name + ".owl");
-        if (outputFile.createNewFile()) {
-            Writer out = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(outputFile), "UTF-8"));
-            out.write(content);
-            out.flush();
-            out.close();
-        } else {
-            LOG.error("Can not create output file");
-        }
-        return outputFile;
-
-    }
+	}
 
 }
-
