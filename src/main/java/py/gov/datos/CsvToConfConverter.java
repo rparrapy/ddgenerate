@@ -90,7 +90,7 @@ public class CsvToConfConverter implements FileConverter {
 			ArrayList<String> columns = new ArrayList<>(Arrays.asList(br
 					.readLine().replace("\"", "").split(SPLIT_BY)));
 			clasesAnidadas.put(clazzName, new ArrayList<String>());
-			System.out.println(clazzName);
+			//System.out.println(clazzName);
 			while ((line = br.readLine()) != null) {
 				List<String> elems = new ArrayList<>(Arrays.asList(line
 						.replace("\"", "").split(SPLIT_BY)));

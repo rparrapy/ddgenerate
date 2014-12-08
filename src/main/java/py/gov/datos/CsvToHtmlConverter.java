@@ -168,7 +168,7 @@ public class CsvToHtmlConverter implements FileConverter {
 									.replace("é", "e").replace("í", "i")
 									.replace("ó", "o").replace("ú", "u")
 									.replace(" ", "_");
-							urls.add(name + ".html");
+							urls.add("def/" + name);
 						}
 					} else {
 						if (elems.size() > 1) {
@@ -288,7 +288,7 @@ public class CsvToHtmlConverter implements FileConverter {
 		name = name.toLowerCase().replace("á", "a").replace("é", "e")
 				.replace("í", "i").replace("ó", "o").replace("ú", "u")
 				.replace(" ", "_");
-		File outputFile = new File(path + "def/" + name + ".html");
+		File outputFile = new File(path + "def/" + name + ".scala.html");
 		if (outputFile.createNewFile()) {
 			Writer out = new BufferedWriter(new OutputStreamWriter(
 					new FileOutputStream(outputFile), "UTF-8"));
@@ -364,7 +364,13 @@ public class CsvToHtmlConverter implements FileConverter {
 			if (j.intValue() < elems.size())
 				elems.remove(j.intValue());
 		}
-		return elems;
+
+		List<String> results = new ArrayList<String>();
+		for(String elem: elems){
+			elem = elem.replace("@", "@@");
+			results.add(elem);
+		}
+		return results;
 	}
 
 	/**
