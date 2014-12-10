@@ -3,57 +3,67 @@
 <div class="container">
     <h1>Diccionario de Datos de la DNCP</h1>
     <div class="row">
-        <table class="index-table table table-striped table-bordered table-hover">
-            <caption th:text="${title}"></caption>
-            <thead>
-            <tr>
-                <th th:each="head: ${headerOne}" th:text="${head}">#</th>
-            </tr>
+        <div class="col-sm-16">
+        <div class="wrap-content clearfix">
+            <div class="tabla">
+            <div class="table-responsive">
+                <table class="index-table table table-striped table-bordered">
+                    <caption th:text="${title}"></caption>
+                    <thead>
+                    <tr>
+                        <th th:each="head: ${headerOne}" th:text="${head}">#</th>
+                    </tr>
 
-            </thead>
+                    </thead>
 
-            <tbody>
-            <tr th:each="row: ${tableOne}">
-                <td th:each="cell: ${row}" class="table-cell"
-                    th:text="${cell}"></td>
+                    <tbody>
+                    <tr th:each="row: ${tableOne}">
+                        <td th:each="cell: ${row}" class="table-cell"
+                            th:text="${cell}"></td>
 
-            </tr>
-            </tbody>
+                    </tr>
+                    </tbody>
 
-        </table>
-    </div>
-    <div class="row">
-        <table class="index-table table table-striped table-bordered table-hover">
-            <thead>
-            <tr>
-                <th th:each="head, headStat: ${headerTwo}" th:text="${head}" th:colspan="${headStat.first}? '2'">#</th>
-            </tr>
-            </thead>
+                </table>
+            </div>
+            </div>
+            <div class="tabla">
+            <div class="table-responsive">
+                <table class="index-table table table-striped table-bordered">
+                    <thead>
+                    <tr>
+                        <th th:each="head, headStat: ${headerTwo}" th:text="${head}" th:colspan="${headStat.first}? '2'">#</th>
+                    </tr>
+                    </thead>
 
-            <tbody>
-            <tr th:each="row, rowStat: ${tableTwo}">
-                <td th:each="cell, cellStat: ${row}" class="class-link"
-                     th:if="${cellStat.first}">
-                    <a th:href="${urls[rowStat.index]}"
-                       th:if="${cellStat.first}"
-                       th:text="${cell}">Link</a>
+                    <tbody>
+                    <tr th:each="row, rowStat: ${tableTwo}">
+                        <td th:each="cell, cellStat: ${row}" class="class-link"
+                             th:if="${cellStat.first}">
+                            <a th:href="${urls[rowStat.index]}"
+                               th:if="${cellStat.first}"
+                               th:text="${cell}">Link</a>
 
-                </td>
-                <td th:each="cell, cellStat: ${row}" class="class-ico"
-                    th:if="${cellStat.first}">
-                    <a th:href="${urls[rowStat.index]}"
-                       th:if="${cellStat.first}">
-                        <img alt="Ir al diccionario" src="/opendata/assets/def/img/def_ico.png">
-                    </a>
+                        </td>
+                        <td th:each="cell, cellStat: ${row}" class="class-ico"
+                            th:if="${cellStat.first}">
+                            <a th:href="${urls[rowStat.index]}"
+                               th:if="${cellStat.first}">
+                                <img alt="Ir al diccionario" src="/datos/assets/def/img/def_ico.png">
+                            </a>
 
-                </td>
-                <td th:each="cell, iterStat: ${row}" class="table-cell"
-                    th:text="${not iterStat.first}? ${cell}" th:if="${not iterStat.first}"></td>
+                        </td>
+                        <td th:each="cell, iterStat: ${row}" class="table-cell"
+                            th:text="${not iterStat.first}? ${cell}" th:if="${not iterStat.first}"></td>
 
-            </tr>
-            </tbody>
+                    </tr>
+                    </tbody>
 
-        </table>
+                </table>
+            </div>
+            </div>
+        </div>
+        </div>
     </div>
 </div>
 }
