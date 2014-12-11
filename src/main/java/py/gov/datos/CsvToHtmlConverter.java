@@ -248,7 +248,7 @@ public class CsvToHtmlConverter implements FileConverter {
 						while (elems.size() < header.size() + 1) {
 							elems.add("");
 						}
-						table.add(elems.subList(1, elems.size() - 1)); //Ignoramos propiedad equivalente
+						table.add(elems.subList(1, elems.size())); //Ignoramos propiedad equivalente
 					}
 					cont++;
 				}

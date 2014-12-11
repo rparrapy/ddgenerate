@@ -8,136 +8,133 @@
                 </span>
         <center th:text="${title}">Título principal de la página</center>
     </h1>
-    <div class="container">
-        <div class="row">
-        <div class="col-sm-16">
-		<div class="wrap-content clearfix">
-        	<div class="tabla">
-        	<div class="table-responsive">
-	            <table class="class-table table table-striped table-bordered">
-	                <thead>
-	                <tr>
-	                    <th th:each="head: ${header}" th:text="${head}">#</th>
-	                </tr>
+       <div class="row">
+       <div class="col-sm-16">
+	<div class="wrap-content clearfix">
+       	<div class="tabla">
+       	<div class="table-responsive">
+            <table class="class-table table table-striped table-bordered">
+                <thead>
+                <tr>
+                    <th th:each="head: ${header}" th:text="${head}">#</th>
+                </tr>
 
-	                </thead>
+                </thead>
 
-	                <tbody>
-	                <tr th:each="row: ${table}">
-	                    <td th:each="cell: ${row}"  class="table-cell"
-	                        th:text="${cell}"></td>
+                <tbody>
+                <tr th:each="row: ${table}">
+                    <td th:each="cell: ${row}"  class="table-cell"
+                        th:text="${cell}"></td>
 
-	                </tr>
-	                </tbody>
+                </tr>
+                </tbody>
 
-	            </table>
-        	</div>
-        	</div>
+            </table>
+       	</div>
+       	</div>
 
-	
-			<!-- Referencias del diccionario de datos -->
-			<div class="tabla">
-			<div class="table-responsive">
-				<table class="table table-striped table-bordered">
-					<thead>
-						<tr>
-							<th title="Field #1">
-								Nombre de la columna
-							</th>
-							<th title="Field #2">
-								Descripción
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>
-								Propiedad en json-ld
-							</td>
-							<td>
-								Esteblace el nombre de la propiedad exactamente como se devuelve en el servicio
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Nombre de la propiedad
-							</td>
-							<td>
-								Nombre completo de la propiedad
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Label
-							</td>
-							<td>
-								Esteblace el nombre de la propiedad en español
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Labels alternativos, separados por comas
-							</td>
-							<td>
-								Esteblace los nombres alternativos de la propiedad en español
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Ejemplos
-							</td>
-							<td>
-								Los valores de ejemplo
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Tipo de datos
-							</td>
-							<td>
-								El tipo de dato esperado de los valores del attributo. Por ejemplo: String, Integer, Float, …. Idealmente se deben utilizar los tipos de datos definidos en el Estándar XML Schema Datatypes de la W3C. <a href="http://www.w3.org/TR/xmlschema-2/#built-in-primitive-datatypes">http://www.w3.org/TR/xmlschema-2/#built-in-primitive-datatypes</a>, por ejemplo: xsd:string, xsd:boolean, xsd:dateTime
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Cardinalidad
-							</td>
-							<td>
-								Establace la relación existente entre la clases padre e hija
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Restricciones
-							</td>
-							<td>
-								En caso que existan, se especifican las restricciones de los datos
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Descripción
-							</td>
-							<td>
-								Describe con más detalles los datos que se encuentran en el atributo en el idioma español
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Propiedad equivalente
-							</td>
-							<td>
-								En caso que existan, se especifican las restricciones de los datos
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			</div>
 
+		<!-- Referencias del diccionario de datos -->
+		<div class="tabla">
+		<div class="table-responsive">
+			<table class="table table-striped table-bordered">
+				<thead>
+					<tr>
+						<th title="Field #1">
+							Nombre de la columna
+						</th>
+						<th title="Field #2">
+							Descripción
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							Propiedad en json-ld
+						</td>
+						<td>
+							Esteblace el nombre de la propiedad exactamente como se devuelve en el servicio
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Nombre de la propiedad
+						</td>
+						<td>
+							Nombre completo de la propiedad
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Label
+						</td>
+						<td>
+							Esteblace el nombre de la propiedad en español
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Labels alternativos, separados por comas
+						</td>
+						<td>
+							Esteblace los nombres alternativos de la propiedad en español
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Ejemplos
+						</td>
+						<td>
+							Los valores de ejemplo
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Tipo de datos
+						</td>
+						<td>
+							El tipo de dato esperado de los valores del attributo. Por ejemplo: String, Integer, Float, …. Idealmente se deben utilizar los tipos de datos definidos en el Estándar XML Schema Datatypes de la W3C. <a href="http://www.w3.org/TR/xmlschema-2/#built-in-primitive-datatypes">http://www.w3.org/TR/xmlschema-2/#built-in-primitive-datatypes</a>, por ejemplo: xsd:string, xsd:boolean, xsd:dateTime
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Cardinalidad
+						</td>
+						<td>
+							Establace la relación existente entre la clases padre e hija
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Restricciones
+						</td>
+						<td>
+							En caso que existan, se especifican las restricciones de los datos
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Descripción
+						</td>
+						<td>
+							Describe con más detalles los datos que se encuentran en el atributo en el idioma español
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Propiedad equivalente
+						</td>
+						<td>
+							En caso que existan, se especifican las restricciones de los datos
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 		</div>
 	</div>
 	</div>
-</div>
+	</div>
 </div>
 }
