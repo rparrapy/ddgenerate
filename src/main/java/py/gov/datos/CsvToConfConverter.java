@@ -26,6 +26,7 @@ public class CsvToConfConverter implements FileConverter {
 	private final String SPLIT_BY = ";";
 
 	private Map<String, String> equivalencias = new HashMap<String, String>();
+	private Map<String, String> tipos = new HashMap<String, String>();
 	private Map<String, List<String>> clasesAnidadas = new HashMap<String, List<String>>();
 
 	@Override
@@ -52,13 +53,14 @@ public class CsvToConfConverter implements FileConverter {
 	private String generateContent() {
 		String result = "";
 		for (String k : equivalencias.keySet()) {
-			result += k + "=" + equivalencias.get(k) + "\n";
+			result += k + ".nombre=" + equivalencias.get(k) + "\n";
+			result += k + ".tipo=" + tipos.get(k) + "\n";
 		}
 
 		result += "\n\n\n";
 
 		for (String k : clasesAnidadas.keySet()) {
-			String values ="clases." + k + "=[";
+			String values = k + "clases." + "=[";
 			for (String clazz : clasesAnidadas.get(k)) {
 				values += clazz + ",";
 			}
@@ -83,10 +85,7 @@ public class CsvToConfConverter implements FileConverter {
 			}
 			String clazzTitle = headerLine.replace("\"", "").replace(";", "")
 					.split("clase")[1].trim();
-			String clazzName = Normalizer
-					.normalize(clazzTitle, Normalizer.Form.NFD)
-					.replaceAll("[^\\p{ASCII}]", "").replaceAll(" +", "_")
-					.toLowerCase();
+			String clazzName = getClassName(clazzTitle);
 			ArrayList<String> columns = new ArrayList<>(Arrays.asList(br
 					.readLine().replace("\"", "").split(SPLIT_BY)));
 			clasesAnidadas.put(clazzName, new ArrayList<String>());
@@ -98,7 +97,8 @@ public class CsvToConfConverter implements FileConverter {
 					while (elems.size() < columns.size()) {
 						elems.add("");
 					}
-					equivalencias.put(elems.get(0), elems.get(1));
+					equivalencias.put(clazzName + "." + elems.get(0), elems.get(1));
+					tipos.put(clazzName + "." + elems.get(0), getClassName(elems.get(8)));
 					if (Character.isUpperCase(elems.get(8).charAt(0))) {
 						clasesAnidadas.get(clazzName).add(elems.get(0));
 					}
@@ -141,6 +141,13 @@ public class CsvToConfConverter implements FileConverter {
 		}
 		return outputFile;
 
+	}
+
+	private String getClassName(String title){
+		return Normalizer
+				.normalize(title, Normalizer.Form.NFD)
+				.replaceAll("[^\\p{ASCII}]", "").replaceAll(" +", "_")
+				.toLowerCase();
 	}
 
 }

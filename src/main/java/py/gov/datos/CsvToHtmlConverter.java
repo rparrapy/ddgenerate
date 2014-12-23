@@ -242,13 +242,13 @@ public class CsvToHtmlConverter implements FileConverter {
 				if (elems.size() > 1) {
 					if (cont == 0) {
 						elems = localizeTable(lang, elems, true);
-						header.addAll(elems.subList(1, elems.size() - 1)); //Ignoramos propiedad equivalente
+						header.addAll(elems.subList(1, elems.size()));
 					} else {
 						elems = localizeTable(lang, elems, false);
 						while (elems.size() < header.size() + 1) {
 							elems.add("");
 						}
-						table.add(elems.subList(1, elems.size())); //Ignoramos propiedad equivalente
+						table.add(elems.subList(1, elems.size()));
 					}
 					cont++;
 				}
