@@ -28,13 +28,14 @@ public class CsvToConfConverter implements FileConverter {
 	private Map<String, String> equivalencias = new HashMap<String, String>();
 	private Map<String, String> tipos = new HashMap<String, String>();
 	private Map<String, List<String>> clasesAnidadas = new HashMap<String, List<String>>();
+	private List<String> classes = new ArrayList<String>();
 
 	@Override
 	public List<File> convert(List<File> files, String path,
 			Map<String, String> params) {
 		for (File file : files) {
 			if (file.getName().equals("Clases.csv")) {
-
+				processIndex(file);
 			} else {
 				processClass(file);
 			}
@@ -60,7 +61,7 @@ public class CsvToConfConverter implements FileConverter {
 		result += "\n\n\n";
 
 		for (String k : clasesAnidadas.keySet()) {
-			String values = k + "clases." + "=[";
+			String values = k + ".clases" + "=[";
 			for (String clazz : clasesAnidadas.get(k)) {
 				values += clazz + ",";
 			}
@@ -69,6 +70,35 @@ public class CsvToConfConverter implements FileConverter {
 		}
 
 		return result;
+	}
+
+	protected void processIndex(File file) {
+		FileReader fr = null;
+		try {
+			fr = new FileReader(file);
+			BufferedReader br = new BufferedReader(fr);
+			String line;
+
+			boolean flag = false;
+			while ((line = br.readLine()) != null) {
+				List<String> elems = new ArrayList<>(Arrays.asList(line
+						.replace("\"", "").split(SPLIT_BY)));
+				if (!elems.isEmpty() && !line.replace(" ", "").isEmpty()) {
+					if (flag) {
+						classes.add(elems.get(0));
+					}
+					if (elems.get(0).equals("Clases")) {
+						flag = true;
+					}
+				}
+			}
+			fr.close();
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void processClass(File file) {
@@ -99,7 +129,7 @@ public class CsvToConfConverter implements FileConverter {
 					}
 					equivalencias.put(clazzName + "." + elems.get(0), elems.get(1));
 					tipos.put(clazzName + "." + elems.get(0), getClassName(elems.get(8)));
-					if (Character.isUpperCase(elems.get(8).charAt(0))) {
+					if (classes.contains(elems.get(8))) {
 						clasesAnidadas.get(clazzName).add(elems.get(0));
 					}
 				}
