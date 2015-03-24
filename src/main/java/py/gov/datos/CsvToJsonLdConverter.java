@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.text.Normalizer;
 
 /**
  * Convertidor de CSV a context JSON-LD
@@ -141,7 +142,11 @@ public class CsvToJsonLdConverter extends CsvToOwlConverter {
      * @throws java.io.IOException
      */
     private File writeToFile(String name, String path, String content) throws IOException {
-        File outputFile = new File(path + "contexts/" + name + ".json");
+        String formattedName = Normalizer
+                .normalize(name, Normalizer.Form.NFD)
+                .replaceAll("[^\\p{ASCII}]", "").replaceAll(" +", "_");
+
+        File outputFile = new File(path + "contexts/" + formattedName + ".json");
         if (outputFile.createNewFile()) {
             Writer out = new BufferedWriter(new OutputStreamWriter(
                     new FileOutputStream(outputFile), "UTF-8"));

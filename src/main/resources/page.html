@@ -11,6 +11,12 @@
        <div class="row">
        <div class="col-sm-16">
 	<div class="wrap-content clearfix">
+
+		<div style="text-align:middle;">
+		<br />
+		<img src="/datos/assets/images/json-ld-data-24.png" width="20" height="20">
+		<a th:href="${context}"> Descargar @@Context en JSON-LD </a></div>
+
        	<div class="tabla">
        	<div class="table-responsive">
             <table class="class-table table table-striped table-bordered">
@@ -24,7 +30,7 @@
                 <tbody>
                 <tr th:each="row: ${table}">
                     <td th:each="cell: ${row}"  class="table-cell"
-                        th:text="${cell}"></td>
+                        th:utext="${cell}"></td>
 
                 </tr>
                 </tbody>

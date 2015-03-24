@@ -28,32 +28,34 @@ import org.thymeleaf.context.IContext;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
 
+import java.text.Normalizer;
+
 /*
- * @author	Rodrigo Parra	
+ * @author	Rodrigo Parra
  * @copyright	2014 Governance and Democracy Program USAID-CEAMSO
  * @license 	http://www.gnu.org/licenses/gpl-2.0.html
- * 
+ *
  * USAID-CEAMSO
  * Copyright (C) 2014 Governance and Democracy Program
  * http://ceamso.org.py/es/proyectos/20-programa-de-democracia-y-gobernabilidad
- * 
+ *
  ----------------------------------------------------------------------------
  * This file is part of the Governance and Democracy Program USAID-CEAMSO,
- * is distributed as free software in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
- * FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License version 2 as published by the 
- * Free Software Foundation, accessible from <http://www.gnu.org/licenses/> or write 
- * to Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
+ * is distributed as free software in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License version 2 as published by the
+ * Free Software Foundation, accessible from <http://www.gnu.org/licenses/> or write
+ * to Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston,
  * MA 02111-1301, USA.
  ---------------------------------------------------------------------------
  * Este archivo es parte del Programa de Democracia y Gobernabilidad USAID-CEAMSO,
  * es distribuido como software libre con la esperanza que sea de utilidad,
  * pero sin NINGUNA GARANTÍA; sin garantía alguna implícita de ADECUACION a cualquier
- * MERCADO o APLICACION EN PARTICULAR. Usted puede redistribuirlo y/o modificarlo 
- * bajo los términos de la GNU Lesser General Public Licence versión 2 de la Free 
- * Software Foundation, accesible en <http://www.gnu.org/licenses/> o escriba a la 
- * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
+ * MERCADO o APLICACION EN PARTICULAR. Usted puede redistribuirlo y/o modificarlo
+ * bajo los términos de la GNU Lesser General Public Licence versión 2 de la Free
+ * Software Foundation, accesible en <http://www.gnu.org/licenses/> o escriba a la
+ * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston,
  * MA 02111-1301, USA.
  */
 
@@ -106,7 +108,7 @@ public class CsvToHtmlConverter implements FileConverter {
 
 	/**
 	 * Procesa el archivo .csv correspondiente al index.html.
-	 * 
+	 *
 	 * @param file
 	 *            archivo Clases.csv.
 	 * @param path
@@ -203,7 +205,7 @@ public class CsvToHtmlConverter implements FileConverter {
 
 	/**
 	 * Procesa un archivo .csv correspondiente a una clase del diccionario.
-	 * 
+	 *
 	 * @param file
 	 *            archivo .csv correspondiente a una clase del diccionario.
 	 * @param path
@@ -232,6 +234,12 @@ public class CsvToHtmlConverter implements FileConverter {
 			String tableTitle = headerLine.replace("\"", "").replace(";", "");
 			context.getVariables().put("title", tableTitle);
 
+			/* Enlace al context */
+			String contextName = "/datos/contexts/" +
+				Normalizer.normalize(file.getName().substring(0, file.getName().indexOf('.')).toLowerCase(), Normalizer.Form.NFD)
+                .replaceAll("[^\\p{ASCII}]", "").replaceAll(" +", "_") + ".json";
+			context.getVariables().put("context", contextName);
+
 			List<String> header = new ArrayList<>();
 			List<List<String>> table = new ArrayList<>();
 			int cont = 0;
@@ -248,6 +256,14 @@ public class CsvToHtmlConverter implements FileConverter {
 						while (elems.size() < header.size() + 1) {
 							elems.add("");
 						}
+
+						/* Agregar la clase equivalente como enlace a la lista de elementos */
+						String claseEquivalente = "";
+						if (elems.get(elems.size() - 1).compareTo("") != 0) {
+							claseEquivalente += "<a href=\"" + elems.get(elems.size() - 1) + "\">" + elems.get(elems.size() - 1) + "</a>";
+							elems.set(elems.size() - 1, claseEquivalente);
+						}
+
 						table.add(elems.subList(1, elems.size()));
 					}
 					cont++;
@@ -273,7 +289,7 @@ public class CsvToHtmlConverter implements FileConverter {
 
 	/**
 	 * Crea un archivo de salida y escribe el contenido correspondiente.
-	 * 
+	 *
 	 * @param name
 	 *            el nombre del archivo a escribir.
 	 * @param path
@@ -304,7 +320,7 @@ public class CsvToHtmlConverter implements FileConverter {
 
 	/**
 	 * Copia el archivo html-resources.zip al directorio de salida.
-	 * 
+	 *
 	 * @param path
 	 *            la ruta del directorio de salida.
 	 */
@@ -343,10 +359,10 @@ public class CsvToHtmlConverter implements FileConverter {
 	/**
 	 * Elimina de la lista de elementos aquellos que corresponden a un idioma
 	 * diferente al indicado.
-	 * 
+	 *
 	 * Si se trata del header, almacena en una lista los índices de las columnas
 	 * a eliminar para las siguientes filas.
-	 * 
+	 *
 	 * @param lang
 	 *            el idioma seleccionado.
 	 * @param elems
@@ -376,10 +392,10 @@ public class CsvToHtmlConverter implements FileConverter {
 	/**
 	 * Elimina de la lista de elementos correspondiente al header de la tabla,
 	 * aquellos que corresponden a un idioma diferente al indicado.
-	 * 
+	 *
 	 * Además, almacena los índices de las columnas a eliminar para las
 	 * siguientes filas.
-	 * 
+	 *
 	 * @param lang
 	 *            el idioma seleccionado.
 	 * @param elems
