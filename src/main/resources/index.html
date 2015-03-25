@@ -61,7 +61,7 @@
 
                         </td>
                         <td th:each="cell, iterStat: ${row}" class="table-cell"
-                            th:text="${not iterStat.first}? ${cell}" th:if="${not iterStat.first}"></td>
+                            th:utext="${not iterStat.first}? ${cell}" th:if="${not iterStat.first}"></td>
 
                     </tr>
                     </tbody>
