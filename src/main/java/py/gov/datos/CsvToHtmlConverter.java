@@ -166,11 +166,11 @@ public class CsvToHtmlConverter implements FileConverter {
 							}
 
 							/* Agregar la clase equivalente como enlace a la lista de elementos */
-							String claseEquivalente = "";
+							/*String claseEquivalente = "";
 							if (elems.get(elems.size() - 1).compareTo("") != 0) {
 								claseEquivalente += "<a href=\"" + elems.get(elems.size() - 1) + "\">" + elems.get(elems.size() - 1) + "</a>";
 								elems.set(elems.size() - 1, claseEquivalente);
-							}
+							}*/
 
 							tableTwo.add(elems);
 							String name = elems.get(0);
@@ -266,11 +266,11 @@ public class CsvToHtmlConverter implements FileConverter {
 						}
 
 						/* Agregar la clase equivalente como enlace a la lista de elementos */
-						String claseEquivalente = "";
+						/*String claseEquivalente = "";
 						if (elems.get(elems.size() - 1).compareTo("") != 0) {
 							claseEquivalente += "<a href=\"" + elems.get(elems.size() - 1) + "\">" + elems.get(elems.size() - 1) + "</a>";
 							elems.set(elems.size() - 1, claseEquivalente);
-						}
+						}*/
 
 						table.add(elems.subList(1, elems.size()));
 					}
