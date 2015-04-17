@@ -164,6 +164,14 @@ public class CsvToHtmlConverter implements FileConverter {
 							while (elems.size() < headerTwo.size()) {
 								elems.add("");
 							}
+
+							/* Agregar la clase equivalente como enlace a la lista de elementos */
+							String claseEquivalente = "";
+							if (elems.get(elems.size() - 1).compareTo("") != 0) {
+								claseEquivalente += "<a href=\"" + elems.get(elems.size() - 1) + "\">" + elems.get(elems.size() - 1) + "</a>";
+								elems.set(elems.size() - 1, claseEquivalente);
+							}
+
 							tableTwo.add(elems);
 							String name = elems.get(0);
 							name = name.toLowerCase().replace("á", "a")
