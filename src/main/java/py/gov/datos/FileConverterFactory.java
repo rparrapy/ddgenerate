@@ -63,6 +63,8 @@ public class FileConverterFactory {
                 break;
             case CSV_TO_CONF:
             	converter = new CsvToConfConverter();
+            case CSV_TO_DATAPACKAGE:
+                converter = new CsvToDataPackageConverter();
         }
         if(converter == null){
             LOG.error("No converter found.");

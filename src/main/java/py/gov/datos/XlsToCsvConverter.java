@@ -81,6 +81,7 @@ public class XlsToCsvConverter implements FileConverter{
                 if(outputFile.createNewFile()){
                     FileOutputStream out = new FileOutputStream(outputFile);
                     StringBuffer content = this.convertSheet(sheet);
+                    //System.out.println(content);
                     out.write(content.toString().getBytes());
                     result.add(outputFile);
                     out.flush();
@@ -153,14 +154,14 @@ public class XlsToCsvConverter implements FileConverter{
 
                 break;
             case Cell.CELL_TYPE_STRING:
-                data.append("\"" + cell.getStringCellValue() + "\";");
+                data.append(CustomStringEscapeUtils.escapeCsv(cell.getStringCellValue()) + ";");
                 break;
 
             case Cell.CELL_TYPE_BLANK:
                 data.append("" + ";");
                 break;
             default:
-                data.append(cell.getStringCellValue() + ";");
+                data.append(CustomStringEscapeUtils.escapeCsv(cell.getStringCellValue()) + ";");
         }
 
         return data;

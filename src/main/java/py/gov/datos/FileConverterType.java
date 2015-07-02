@@ -33,5 +33,5 @@ package py.gov.datos;
  * Representa una conversión de un formato de entrada a uno de salida.
  */
 public enum FileConverterType {
-    XLS_TO_CSV, CSV_TO_HTML, XLS_TO_HTML, CSV_TO_OWL, CSV_TO_JSONLD, CSV_TO_CONF
+    XLS_TO_CSV, CSV_TO_HTML, XLS_TO_HTML, CSV_TO_OWL, CSV_TO_JSONLD, CSV_TO_CONF, CSV_TO_DATAPACKAGE
 }
