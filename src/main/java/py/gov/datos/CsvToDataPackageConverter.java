@@ -71,7 +71,8 @@ public class CsvToDataPackageConverter implements FileConverter {
         int cont = 0;
         for (List<String> record : clazzes) {
             OrderedJSONObject clazz = new OrderedJSONObject();
-            clazz.put("index", ++cont);
+            //clazz.put("index", ++cont);
+            clazz.put("class", record.get(0));
             clazz.put("name", record.get(1));
             clazz.put("description", record.get(2));
             content.add(clazz);
@@ -79,7 +80,7 @@ public class CsvToDataPackageConverter implements FileConverter {
 
         File result = null;
         try {
-            result = writeToFile("index", path, content.toString(4));
+            result = writeToFile("index", path + "app/views/", StringEscapeUtils.unescapeJava(content.toString(4)));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -105,7 +106,7 @@ public class CsvToDataPackageConverter implements FileConverter {
             int cont = 0;
 
             while ((line = br.readLine()) != null) {
-                List<String> elems = new ArrayList<>(Arrays.asList(StringEscapeUtils.unescapeCsv(line)
+                List<String> elems = new ArrayList<>(Arrays.asList(CustomStringEscapeUtils.unescapeCsv(line)
                         .replace("\"", "").split(SPLIT_BY)));
 
                 if (elems.size() > 1) {
