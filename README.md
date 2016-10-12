@@ -31,4 +31,4 @@ The ouptut will be in `client`
 ## Want to contribute?
 
 If you've found a bug or have a great idea for new feature let me know by [adding your suggestion]
-(http://github.com/mbaez/ddgenerate/issues/new) to [issues list](https://github.com/mbaez/ddgenerate/issues).
+(http://github.com/rparrapy/ddgenerate/issues/new) to [issues list](https://github.com/rparrapy/ddgenerate/issues).
