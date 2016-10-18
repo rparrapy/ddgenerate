@@ -1,5 +1,9 @@
 package py.gov.datos;
 
+import java.io.*;
+import java.text.Normalizer;
+import java.util.*;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
@@ -7,16 +11,11 @@ import org.apache.wink.json4j.OrderedJSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.text.Normalizer;
-import java.util.*;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-
 /**
  * Created by rparra on 24/6/15.
  */
 public class CsvToDataPackageConverter implements FileConverter {
+
     private final Logger LOG = LoggerFactory.getLogger(CsvToDataPackageConverter.class);
     private final String SPLIT_BY = ";";
     private static final Map<String, List<String>> LANG_REFERENCES;
@@ -27,17 +26,24 @@ public class CsvToDataPackageConverter implements FileConverter {
         LANG_REFERENCES = new HashMap<>();
 
         List<String> refEs = Arrays.asList(new String[]{": ESPAÑOL",
-                ": ESPAÑOL,", ": Español"});
+            ": ESPAÑOL,", ": Español"});
         LANG_REFERENCES.put("es", refEs);
 
         List<String> refEn = Arrays.asList(new String[]{": INGLES",
-                ": INGLES,", ": Inglés", ": Ingles"});
+            ": INGLES,", ": Inglés", ": Ingles"});
         LANG_REFERENCES.put("en", refEn);
 
         XSD_TO_TYPE = new HashMap<>();
         XSD_TO_TYPE.put("xsd:string", "string");
         XSD_TO_TYPE.put("xsd:positiveInteger", "integer");
+        XSD_TO_TYPE.put("xsd:integer", "integer");
         XSD_TO_TYPE.put("xsd:boolean", "boolean");
+        XSD_TO_TYPE.put("xsd:decimal", "decimal");
+        XSD_TO_TYPE.put("xsd:date", "date");
+        XSD_TO_TYPE.put("xsd:dateTime", "dateTime");
+        XSD_TO_TYPE.put("xsd:double", "double");
+        XSD_TO_TYPE.put("xsd:duration", "duration");
+        XSD_TO_TYPE.put("xsd:float", "float");
 
     }
 
@@ -56,7 +62,7 @@ public class CsvToDataPackageConverter implements FileConverter {
                     result.add(makePage(file, path, params));
                 }
 
-            }catch(JSONException e){
+            } catch (JSONException e) {
                 LOG.error("Can not parse JSON.");
             }
         }
@@ -161,14 +167,13 @@ public class CsvToDataPackageConverter implements FileConverter {
         File result = null;
         try {
             result = writeToFile("schema", path + subpath, StringEscapeUtils.unescapeJava(content.toString(4)));
-       } catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         return result;
 
     }
-
 
     private List<List<String>> getClazzList(File file, String path, Map<String, String> params) {
         String lang = params.get("language");
@@ -218,13 +223,11 @@ public class CsvToDataPackageConverter implements FileConverter {
                                     .replace(" ", "_");
                             urls.add("def/" + name);
                         }
-                    } else {
-                        if (elems.size() > 1) {
-                            while (elems.size() < headerOne.size()) {
-                                elems.add("");
-                            }
-                            tableOne.add(elems);
+                    } else if (elems.size() > 1) {
+                        while (elems.size() < headerOne.size()) {
+                            elems.add("");
                         }
+                        tableOne.add(elems);
                     }
                 }
             }
@@ -243,16 +246,24 @@ public class CsvToDataPackageConverter implements FileConverter {
     /**
      * Crea un archivo de salida y escribe el contenido correspondiente.
      *
-     * @param name    el nombre del archivo a escribir.
-     * @param path    la ruta donde se encuentra el archivo.
+     * @param name el nombre del archivo a escribir.
+     * @param path la ruta donde se encuentra el archivo.
      * @param content el contenido a escribir en el archivo.
      * @return el archivo creado.
      * @throws java.io.IOException
      */
     private File writeToFile(String name, String path, String content) throws IOException {
+        //se crea el directorio si no existe
+        File outDir = new File(path);
+        if (!outDir.exists()) {
+            outDir.mkdirs();
+        }
+        //luego se crea el json
         File outputFile = new File(path + name + ".json");
         //borramos la version anterior
-        if(outputFile.isFile()) outputFile.delete();
+        if (outputFile.isFile()) {
+            outputFile.delete();
+        }
         if (new File(path).isDirectory() && outputFile.createNewFile()) {
             System.out.println("Writing file: " + path + name + ".json");
             Writer out = new BufferedWriter(new OutputStreamWriter(
@@ -274,19 +285,20 @@ public class CsvToDataPackageConverter implements FileConverter {
      * Si se trata del header, almacena en una lista los índices de las columnas
      * a eliminar para las siguientes filas.
      *
-     * @param lang   el idioma seleccionado.
-     * @param elems  la lista de elementos correspondiente a una fila del .csv
+     * @param lang el idioma seleccionado.
+     * @param elems la lista de elementos correspondiente a una fila del .csv
      * @param header indica si la fila es o no el header de la tabla.
      * @return la lista con las cadenas correspondientes al idioma seleccionado.
      */
     private List<String> localizeTable(String lang, List<String> elems,
-                                       boolean header) {
+            boolean header) {
         if (header) {
             elems = localizeHeader(lang, elems);
         }
         for (Integer j : removedColumns) {
-            if (j.intValue() < elems.size())
+            if (j.intValue() < elems.size()) {
                 elems.remove(j.intValue());
+            }
         }
 
         List<String> results = new ArrayList<String>();
@@ -304,7 +316,7 @@ public class CsvToDataPackageConverter implements FileConverter {
      * Además, almacena los índices de las columnas a eliminar para las
      * siguientes filas.
      *
-     * @param lang  el idioma seleccionado.
+     * @param lang el idioma seleccionado.
      * @param elems la lista de elementos correspondiente a una fila del .csv
      * @return la lista con las cadenas correspondientes al idioma seleccionado.
      */
@@ -331,7 +343,7 @@ public class CsvToDataPackageConverter implements FileConverter {
         return result;
     }
 
-    private String getFileName(String title){
+    private String getFileName(String title) {
         return Normalizer
                 .normalize(title, Normalizer.Form.NFD)
                 .replaceAll("[^\\p{ASCII}]", "").replaceAll(" +", "-")

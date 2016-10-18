@@ -28,7 +28,13 @@ package py.gov.datos;
  * Free Software Foundation (FSF) Inc., 51 Franklin St, Fifth Floor, Boston, 
  * MA 02111-1301, USA.
  */
-
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -37,26 +43,17 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Convertidor de XLSX a CSV.
  */
-public class XlsToCsvConverter implements FileConverter{
+public class XlsToCsvConverter implements FileConverter {
 
-    private final  Logger LOG = LoggerFactory.getLogger(XlsToCsvConverter.class);
+    private final Logger LOG = LoggerFactory.getLogger(XlsToCsvConverter.class);
 
     @Override
     public List<File> convert(List<File> files, String path, Map<String, String> params) {
         List<File> result = new ArrayList<File>();
-        for(File file: files){
+        for (File file : files) {
             result.addAll(convert(file, path));
         }
         return result;
@@ -75,10 +72,10 @@ public class XlsToCsvConverter implements FileConverter{
             XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(file));
             File csvDir = new File(path + "csv/");
             csvDir.mkdir();
-            for(int i= 0; i < workbook.getNumberOfSheets(); i++){
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 XSSFSheet sheet = workbook.getSheetAt(i);
                 File outputFile = new File(path + "csv/" + sheet.getSheetName() + ".csv");
-                if(outputFile.createNewFile()){
+                if (outputFile.createNewFile()) {
                     FileOutputStream out = new FileOutputStream(outputFile);
                     StringBuffer content = this.convertSheet(sheet);
                     //System.out.println(content);
@@ -86,7 +83,7 @@ public class XlsToCsvConverter implements FileConverter{
                     result.add(outputFile);
                     out.flush();
                     out.close();
-                }else{
+                } else {
                     LOG.error("Can not create output file");
                 }
 
@@ -99,19 +96,20 @@ public class XlsToCsvConverter implements FileConverter{
 
     /**
      * Convierte una hoja de una planilla XLSX a un archivo .csv
+     *
      * @param sheet hoja a convertir.
      * @return un archivo .csv
      */
-    private StringBuffer convertSheet(XSSFSheet sheet){
+    private StringBuffer convertSheet(XSSFSheet sheet) {
         StringBuffer data = new StringBuffer();
-        Iterator<Row> rowIterator = sheet.iterator();
-
-        while(rowIterator.hasNext()){
-            Row row = rowIterator.next();
+        int start = sheet.getFirstRowNum();
+        int end = sheet.getLastRowNum();
+        for (int idx = start; idx <= end; idx++) {
+            Row row = sheet.getRow(idx);
             StringBuffer rowBuffer = convertRow(row);
             data.append(rowBuffer);
         }
-
+        //System.out.println(data);
         return data;
     }
 
@@ -121,15 +119,15 @@ public class XlsToCsvConverter implements FileConverter{
      * @param row fila a convertir.
      * @return fila del archivo .csv.
      */
-    private StringBuffer convertRow(Row row){
+    private StringBuffer convertRow(Row row) {
         StringBuffer data = new StringBuffer();
-        Iterator<Cell> cellIterator = row.cellIterator();
-
-        while (cellIterator.hasNext()){
-            StringBuffer cellBuffer = convertCell(cellIterator.next());
+        int len = row.getLastCellNum();
+        for (int idx = 0; idx <= len; idx++) {
+            StringBuffer cellBuffer = convertCell(row.getCell(idx));
             data.append(cellBuffer);
         }
-        if(data.length() > 0){
+
+        if (data.length() > 0) {
             data = data.deleteCharAt(data.length() - 1);
         }
         data.append("\r\n");
@@ -137,33 +135,36 @@ public class XlsToCsvConverter implements FileConverter{
     }
 
     /**
-     * Convierte una celda de una planilla XLSX a un elemento de un archivo .csv.
+     * Convierte una celda de una planilla XLSX a un elemento de un archivo
+     * .csv.
+     *
      * @param cell celda a convertir.
      * @return elemento generado.
      */
-    private StringBuffer convertCell(Cell cell){
+    private StringBuffer convertCell(Cell cell) {
         StringBuffer data = new StringBuffer();
+        if (cell != null) {
+            switch (cell.getCellType()) {
+                case Cell.CELL_TYPE_BOOLEAN:
+                    data.append(cell.getBooleanCellValue());
 
-        switch (cell.getCellType()) {
-            case Cell.CELL_TYPE_BOOLEAN:
-                data.append(cell.getBooleanCellValue() + ";");
+                    break;
+                case Cell.CELL_TYPE_NUMERIC:
+                    data.append(new DataFormatter().formatCellValue(cell));
 
-                break;
-            case Cell.CELL_TYPE_NUMERIC:
-                data.append(new DataFormatter().formatCellValue(cell) + ";");
+                    break;
+                case Cell.CELL_TYPE_STRING:
+                    data.append(CustomStringEscapeUtils.escapeCsv(cell.getStringCellValue()));
+                    break;
 
-                break;
-            case Cell.CELL_TYPE_STRING:
-                data.append(CustomStringEscapeUtils.escapeCsv(cell.getStringCellValue()) + ";");
-                break;
-
-            case Cell.CELL_TYPE_BLANK:
-                data.append("" + ";");
-                break;
-            default:
-                data.append(CustomStringEscapeUtils.escapeCsv(cell.getStringCellValue()) + ";");
+                case Cell.CELL_TYPE_BLANK:
+                    data.append("");
+                    break;
+                default:
+                    data.append(CustomStringEscapeUtils.escapeCsv(cell.getStringCellValue()));
+            }
         }
-
+        data.append(";");
         return data;
     }
 }
